@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmallBiz Cyber & AI Readiness Advisor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SPLASH / INTRO MODAL
+════════════════════════════════════════════════════════════ -->
+<div id="splashOverlay" class="splash-overlay">
+  <div class="splash-modal">
+    <div class="splash-logo">
+      <img src="champtron-logo-optimized.jpg" alt="Champtron Systems LLC" />
+      <div class="splash-brand">
+        <span class="splash-brand-name">CHAMPTRON SYSTEMS LLC</span>
+        <span class="splash-brand-sub">SmallBiz Cyber &amp; AI Readiness Advisor</span>
+      </div>
+    </div>
+
+    <div class="splash-badge">Free Tool</div>
+
+    <h2 class="splash-title">What This Demo Produces</h2>
+    <p class="splash-subtitle">Complete your assessment to unlock a full suite of readiness tools tailored to your business.</p>
+
+    <ul class="splash-features">
+      <li><span class="splash-feat-icon cyan">&#10003;</span> Cyber Readiness Score</li>
+      <li><span class="splash-feat-icon purple">&#10003;</span> AI Readiness Score</li>
+      <li><span class="splash-feat-icon yellow">&#10003;</span> Funding Readiness Score</li>
+      <li><span class="splash-feat-icon green">&#10003;</span> Industry-Specific Recommendations</li>
+      <li><span class="splash-feat-icon cyan">&#10003;</span> ROI &amp; Time-Savings Estimates</li>
+      <li><span class="splash-feat-icon blue">&#10003;</span> Executive Report Export</li>
+      <li><span class="splash-feat-icon purple">&#10003;</span> Business Owner Action Center</li>
+      <li><span class="splash-feat-icon green">&#10003;</span> Policy &amp; Checklist Generator</li>
+      <li><span class="splash-feat-icon yellow">&#10003;</span> Funding Readiness &amp; Submission Prep</li>
+      <li><span class="splash-feat-icon cyan">&#10003;</span> Application Answer Builder</li>
+      <li><span class="splash-feat-icon blue">&#10003;</span> Compliance Checklist &amp; Implementation Tracker</li>
+      <li><span class="splash-feat-icon green">&#10003;</span> Customer Growth &amp; Cash-Flow Snapshot</li>
+    </ul>
+
+    <button class="splash-btn" onclick="dismissSplash()">
+      Get Started
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+
+    <p class="splash-note">No account required &bull; Free demo &bull; Takes ~5 minutes</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <img src="champtron-logo-optimized.jpg" alt="Champtron Systems LLC" />
+    <div class="brand-text">
+      <span class="brand-name">CHAMPTRON</span>
+      <span class="brand-sub">SYSTEMS LLC</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" data-view="assessments" onclick="showView('assessments')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      Assessments
+    </a>
+    <a class="nav-item" data-view="results" onclick="showView('results')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Results &amp; Score
+    </a>
+    <a class="nav-item" data-view="action-plan" onclick="showView('action-plan')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Action Plan
+    </a>
+    <a class="nav-item" data-view="risk-register" onclick="showView('risk-register')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Risk Register
+    </a>
+    <a class="nav-item" data-view="implementation" onclick="showView('implementation')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Implementation Tracker
+    </a>
+    <a class="nav-item" data-view="funding" onclick="showView('funding')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Funding Readiness
+    </a>
+    <a class="nav-item" data-view="profile" onclick="showView('profile')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Business Profile
+    </a>
+    <a class="nav-item" data-view="policies" onclick="showView('policies')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Policy &amp; Checklists
+    </a>
+    <a class="nav-item" data-view="growth" onclick="showView('growth')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Growth Planner
+    </a>
+    <a class="nav-item" data-view="cashflow" onclick="showView('cashflow')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Cash-Flow Snapshot
+    </a>
+    <a class="nav-item" data-view="reports" onclick="showView('reports')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Reports
+    </a>
+    <a class="nav-item" data-view="resources" onclick="showView('resources')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Resources
+    </a>
+    <a class="nav-item" data-view="help" onclick="showView('help')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Help &amp; Support
+    </a>
+    <a class="nav-item" data-view="about" onclick="showView('about')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-logo">
+      <img src="champtron-logo-optimized.jpg" alt="Champtron Systems LLC" />
+      <div class="brand-text">
+        <span class="brand-name">CHAMPTRON</span>
+        <span class="brand-sub">SYSTEMS LLC</span>
+      </div>
+    </div>
+    <p>Empowering Small Businesses with Cybersecurity &amp; AI Readiness.</p>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN AREA
+════════════════════════════════════════════════════════════ -->
+<div class="main-area">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>SmallBiz Cyber &amp; AI Readiness Advisor</h1>
+      <p>Assess. Plan. Secure. Grow.</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="downloadReport()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Report
+      </button>
+      <button class="btn btn-primary" onclick="showView('assessments')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        Reassessment
+      </button>
+      <button class="btn btn-icon" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">☀</button>
+    </div>
+  </header>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: DASHBOARD
+    ═══════════════════════════════════════════════ -->
+    <div id="view-dashboard" class="view active">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div class="banner-text">
+          <h2>Welcome to Your Readiness Advisor</h2>
+          <p class="banner-tagline">Answer ~15 questions about your business and walk away with a scored readiness report, a tailored action plan, and ready-to-use documents — no consultant needed.</p>
+          <div class="banner-pills">
+            <span class="banner-pill cyan">Cyber Score</span>
+            <span class="banner-pill purple">AI Score</span>
+            <span class="banner-pill yellow">Funding Score</span>
+            <span class="banner-pill green">Action Plan</span>
+            <span class="banner-pill blue">Document Generator</span>
+          </div>
+        </div>
+        <div class="banner-shield-wrap">
+          <div class="banner-circuit-dots"></div>
+          <svg class="banner-shield-svg" viewBox="0 0 120 138" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="shieldOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#1e6fcc"/>
+                <stop offset="50%" stop-color="#1a5bb8"/>
+                <stop offset="100%" stop-color="#0d3d8a"/>
+              </linearGradient>
+              <linearGradient id="shieldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2589e8"/>
+                <stop offset="100%" stop-color="#1460c0"/>
+              </linearGradient>
+              <filter id="shieldGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="6" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="checkGlow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <!-- Outer glow ring -->
+            <path d="M60 4 L108 22 L108 66 Q108 102 60 132 Q12 102 12 66 L12 22 Z"
+                  fill="rgba(34,100,220,0.18)" stroke="none"/>
+            <!-- Shield body -->
+            <path d="M60 10 L102 26 L102 64 Q102 96 60 124 Q18 96 18 64 L18 26 Z"
+                  fill="url(#shieldOuter)" filter="url(#shieldGlow)"
+                  stroke="#3da8f5" stroke-width="1.5" stroke-opacity="0.7"/>
+            <!-- Shield inner highlight -->
+            <path d="M60 18 L94 31 L94 63 Q94 89 60 113 Q26 89 26 63 L26 31 Z"
+                  fill="url(#shieldInner)" opacity="0.6"/>
+            <!-- Top shine -->
+            <path d="M60 18 L94 31 L94 52 Q80 44 60 42 Q40 44 26 52 L26 31 Z"
+                  fill="rgba(100,180,255,0.18)"/>
+            <!-- Checkmark -->
+            <polyline points="36,67 51,83 84,48"
+                      fill="none" stroke="white" stroke-width="8"
+                      stroke-linecap="round" stroke-linejoin="round"
+                      filter="url(#checkGlow)" opacity="0.95"/>
+            <!-- Rim highlight -->
+            <path d="M60 10 L102 26 L102 64 Q102 96 60 124"
+                  fill="none" stroke="rgba(130,200,255,0.35)" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Score Cards Row -->
+      <div class="score-row">
+        <!-- Overall -->
+        <div class="score-card overall-card">
+          <div class="card-label">Overall Readiness Score</div>
+          <div class="overall-gauge">
+            <canvas id="overallChart"></canvas>
+            <div class="gauge-label" id="overallGaugeLabel">—</div>
+          </div>
+          <div class="card-status" id="overallStatus" style="color:#22d3ee">—</div>
+          <div class="card-hint" id="overallHint">Run an assessment to see your score.</div>
+        </div>
+        <!-- Cybersecurity -->
+        <div class="score-card">
+          <div class="card-label">Cybersecurity Score</div>
+          <div class="card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div class="card-value" id="dashCyberVal" style="color:#22d3ee">—</div>
+          <div class="card-status" id="dashCyberStatus" style="color:#22d3ee">—</div>
+          <div class="card-hint" id="dashCyberHint">Not yet assessed.</div>
+        </div>
+        <!-- AI Readiness -->
+        <div class="score-card">
+          <div class="card-label">AI Readiness Score</div>
+          <div class="card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="7" r="3"/><line x1="8" y1="7" x2="3" y2="11"/><line x1="16" y1="7" x2="21" y2="11"/><circle cx="8" cy="15" r="1" fill="#a78bfa"/><circle cx="12" cy="15" r="1" fill="#a78bfa"/><circle cx="16" cy="15" r="1" fill="#a78bfa"/></svg>
+          </div>
+          <div class="card-value" id="dashAIVal" style="color:#a78bfa">—</div>
+          <div class="card-status" id="dashAIStatus" style="color:#a78bfa">—</div>
+          <div class="card-hint" id="dashAIHint">Not yet assessed.</div>
+        </div>
+        <!-- Operational -->
+        <div class="score-card">
+          <div class="card-label">Operational Score</div>
+          <div class="card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07M8.46 8.46a5 5 0 000 7.07"/></svg>
+          </div>
+          <div class="card-value" id="dashOpsVal" style="color:#34d399">—</div>
+          <div class="card-status" id="dashOpsStatus" style="color:#34d399">—</div>
+          <div class="card-hint" id="dashOpsHint">Not yet assessed.</div>
+        </div>
+        <!-- Funding -->
+        <div class="score-card">
+          <div class="card-label">Funding Readiness</div>
+          <div class="card-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="card-value" id="dashFundVal" style="color:#facc15">—</div>
+          <div class="card-status" id="dashFundStatus" style="color:#facc15">—</div>
+          <div class="card-hint" id="dashFundHint">Not yet assessed.</div>
+        </div>
+      </div>
+
+      <!-- Mid Row: Priority Actions + Radar -->
+      <div class="mid-row">
+        <div class="panel-card">
+          <div class="priority-header">
+            <h3>Top Priority Actions</h3>
+            <button class="view-all-btn" onclick="showView('action-plan')">View All</button>
+          </div>
+          <div id="dashPriorityList">
+            <div class="priority-item">
+              <span class="priority-item-icon">🔒</span>
+              <span class="priority-item-text">Run your first assessment to see priorities</span>
+              <span class="priority-badge badge-medium">—</span>
+              <span class="priority-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <h3>Readiness Overview</h3>
+          <div class="radar-container">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="bottom-row">
+        <!-- Business Profile Summary -->
+        <div class="panel-card">
+          <h3>Business Profile</h3>
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border)">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+            </div>
+            <div id="dashBizNameMain" style="font-size:14px;font-weight:800;color:#fff">—</div>
+          </div>
+          <div id="dashBizProfile">
+            <div class="biz-profile-item">
+              <div>
+                <div class="item-label">Business Name</div>
+                <div class="item-val" id="dashBizName">—</div>
+              </div>
+            </div>
+            <div class="biz-profile-item">
+              <div>
+                <div class="item-label">Industry</div>
+                <div class="item-val" id="dashBizIndustry">—</div>
+              </div>
+            </div>
+            <div class="biz-profile-item">
+              <div>
+                <div class="item-label">Business Size</div>
+                <div class="item-val">Small Business (1-10)</div>
+              </div>
+            </div>
+            <div class="biz-profile-item">
+              <div>
+                <div class="item-label">Last Assessment</div>
+                <div class="item-val" id="dashLastAssess">Not yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Implementation Progress -->
+        <div class="panel-card">
+          <h3>Implementation Progress</h3>
+          <div class="impl-center">
+            <div class="impl-donut">
+              <canvas id="implDonutChart"></canvas>
+              <div class="impl-donut-label" id="implDonutPct">0%</div>
+            </div>
+            <div class="impl-stats">
+              <div class="impl-stat-row">
+                <span>Completed</span>
+                <span class="stat-val green" id="implCompleted">0</span>
+              </div>
+              <div class="impl-stat-row">
+                <span>In Progress</span>
+                <span class="stat-val yellow" id="implInProgress">0</span>
+              </div>
+              <div class="impl-stat-row">
+                <span>Planned</span>
+                <span class="stat-val gray" id="implPlanned">8</span>
+              </div>
+              <div class="impl-stat-row" style="margin-top:6px; color:#aaa; font-size:11px;">
+                <span id="implSubLabel">0 of 8 actions completed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cash-Flow Snapshot -->
+        <div class="panel-card">
+          <h3>Cash-Flow Snapshot (Monthly)</h3>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <div style="width:38px;height:38px;border-radius:50%;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <span style="font-size:12px;color:var(--muted)">Monthly overview</span>
+          </div>
+          <div>
+            <div class="cash-row">
+              <span class="cash-label">Revenue</span>
+              <span class="cash-val green" id="dashRevenue">—</span>
+            </div>
+            <div class="cash-row">
+              <span class="cash-label">Expenses</span>
+              <span class="cash-val red" id="dashExpenses">—</span>
+            </div>
+            <div class="cash-row">
+              <span class="cash-label">Net Cash Flow</span>
+              <span class="cash-val green" id="dashNetCash">—</span>
+            </div>
+            <div class="cash-row" style="border-bottom:none">
+              <span class="runway-label" id="dashRunway">Complete cash-flow view →</span>
+              <a style="font-size:11px; color:#7a9bbf; cursor:pointer; text-decoration:none;" onclick="showView('cashflow')">Update</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="panel-card">
+          <h3>Next Steps</h3>
+          <div id="dashNextSteps">
+            <div class="next-step-item">
+              <div class="step-check">✓</div>
+              <span>Complete your first assessment</span>
+            </div>
+            <div class="next-step-item">
+              <div class="step-check">✓</div>
+              <span>Review top priority actions</span>
+            </div>
+            <div class="next-step-item">
+              <div class="step-check">✓</div>
+              <span>Improve your readiness scores</span>
+            </div>
+            <div class="next-step-item">
+              <div class="step-check">✓</div>
+              <span>Review and update action plan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end #view-dashboard -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: ASSESSMENTS
+    ═══════════════════════════════════════════════ -->
+    <div id="view-assessments" class="view">
+      <div class="view-heading">
+        <p class="eyebrow">Step 1</p>
+        <h2>Business Assessment</h2>
+        <p>Choose a sample profile or enter your own business information to generate your readiness report.</p>
+      </div>
+
+      <div class="sample-buttons">
+        <button class="sample-btn" onclick="loadSample('restaurant')">🍽 Restaurant</button>
+        <button class="sample-btn" onclick="loadSample('barber')">✂ Barber / Beauty Shop</button>
+        <button class="sample-btn" onclick="loadSample('nonprofit')">🤝 Nonprofit</button>
+        <button class="sample-btn" onclick="loadSample('contractor')">🔨 Contractor</button>
+        <button class="sample-btn" onclick="loadSample('online')">🛒 Online Store</button>
+      </div>
+
+      <form id="assessmentForm" class="form-card">
+        <div class="form-grid-2">
+          <label>Business Name
+            <input id="businessName" placeholder="Example: Bright Path Café" required />
+          </label>
+          <label>Industry
+            <select id="industry">
+              <option value="restaurant">Restaurant</option>
+              <option value="barber">Barber / Beauty Shop</option>
+              <option value="nonprofit">Nonprofit</option>
+              <option value="contractor">Contractor</option>
+              <option value="online">Online Store</option>
+              <option value="consultant">Consultant / Professional Services</option>
+              <option value="retail">Retail</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Primary business challenge
+          <textarea id="challenge" rows="3" placeholder="Describe the biggest operational, security, or growth challenge your business faces."></textarea>
+        </label>
+
+        <div class="form-grid-3">
+          <label>MFA enabled?
+            <select id="mfa"><option value="0">No</option><option value="1">Some accounts</option><option value="2">Yes, most critical</option></select>
+          </label>
+          <label>Backups in place?
+            <select id="backups"><option value="0">No</option><option value="1">Partial/manual</option><option value="2">Automated or tested</option></select>
+          </label>
+          <label>Cyber policy/training?
+            <select id="training"><option value="0">No</option><option value="1">Informal</option><option value="2">Documented/training exists</option></select>
+          </label>
+        </div>
+
+        <div class="form-grid-3">
+          <label>Uses digital tools?
+            <select id="digitalTools"><option value="0">Mostly paper/manual</option><option value="1">Some tools</option><option value="2">Integrated tools</option></select>
+          </label>
+          <label>Automation level
+            <select id="automation"><option value="0">None</option><option value="1">Limited</option><option value="2">Moderate/strong</option></select>
+          </label>
+          <label>AI usage
+            <select id="aiUsage"><option value="0">None</option><option value="1">Testing</option><option value="2">Actively using</option></select>
+          </label>
+        </div>
+
+        <div class="form-grid-3">
+          <label>Business documents
+            <select id="documents"><option value="0">Missing</option><option value="1">Partial</option><option value="2">Organized</option></select>
+          </label>
+          <label>Website / online presence
+            <select id="onlinePresence"><option value="0">None/weak</option><option value="1">Basic</option><option value="2">Strong</option></select>
+          </label>
+          <label>Growth plan
+            <select id="growthPlan"><option value="0">No plan</option><option value="1">Informal</option><option value="2">Documented</option></select>
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn">Generate Readiness Report</button>
+      </form>
+    </div><!-- end #view-assessments -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: RESULTS & SCORE
+    ═══════════════════════════════════════════════ -->
+    <div id="view-results" class="view">
+      <div class="view-heading">
+        <p class="eyebrow">Step 2</p>
+        <h2>Results &amp; Score</h2>
+        <p>Visual readiness scores with AI-style recommendations and next actions.</p>
+      </div>
+
+      <div class="detail-panel" id="resultsMainPanel" style="display:none">
+        <h3>Readiness Breakdown</h3>
+        <div class="bar-row"><span class="bar-label">Cyber</span><div class="bar-track"><div class="bar-fill" id="cyberBar"></div></div><b class="bar-val" id="cyberScore"></b></div>
+        <div class="bar-row"><span class="bar-label">AI</span><div class="bar-track"><div class="bar-fill" id="aiBar"></div></div><b class="bar-val" id="aiScore"></b></div>
+        <div class="bar-row"><span class="bar-label">Operations</span><div class="bar-track"><div class="bar-fill" id="opsBar"></div></div><b class="bar-val" id="opsScore"></b></div>
+        <div class="bar-row"><span class="bar-label">Funding</span><div class="bar-track"><div class="bar-fill" id="fundingBar"></div></div><b class="bar-val" id="fundingScore"></b></div>
+
+        <div class="grid-2" style="margin-top:18px">
+          <div>
+            <h4>ROI Estimate</h4>
+            <p id="roiText"></p>
+            <p id="timeSavings" style="margin-top:8px"></p>
+            <p id="riskReduction" style="margin-top:8px"></p>
+          </div>
+          <div>
+            <h4>Maturity Level</h4>
+            <p id="maturityLevel"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="detail-panel">
+          <h3>AI Suggested Next Steps</h3>
+          <ul id="recommendations"></ul>
+        </div>
+        <div class="detail-panel">
+          <h3>Industry-Specific Recommendations</h3>
+          <ul id="industryRecommendations"></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="detail-panel" style="border-color:rgba(251,113,133,.3)">
+          <h3>Before</h3>
+          <ul id="beforeList"></ul>
+        </div>
+        <div class="detail-panel" style="border-color:rgba(52,211,153,.3)">
+          <h3>After</h3>
+          <ul id="afterList"></ul>
+        </div>
+      </div>
+
+      <div class="detail-panel">
+        <h3>30 / 60 / 90-Day Business Growth Roadmap</h3>
+        <div class="roadmap">
+          <div><strong>30 Days</strong><p id="road30"></p></div>
+          <div><strong>60 Days</strong><p id="road60"></p></div>
+          <div><strong>90 Days</strong><p id="road90"></p></div>
+        </div>
+      </div>
+
+      <div class="detail-panel">
+        <h3>Executive Summary</h3>
+        <p id="executiveSummary"></p>
+        <div class="action-row" style="margin-top:16px">
+          <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
+          <button class="btn btn-outline" onclick="downloadReport()">Download Text Report</button>
+        </div>
+      </div>
+    </div><!-- end #view-results -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: ACTION PLAN
+    ═══════════════════════════════════════════════ -->
+    <div id="view-action-plan" class="view">
+      <div class="view-heading">
+        <h2>Action Plan</h2>
+        <p>Prioritized actions, cost guidance, tool recommendations, and document generation.</p>
+      </div>
+
+      <div class="detail-panel">
+        <h3>Priority Action Checklist</h3>
+        <div class="grid-3">
+          <div class="mini-card"><h4>Do This First</h4><ul id="doFirst"></ul></div>
+          <div class="mini-card"><h4>Do This Next</h4><ul id="doNext"></ul></div>
+          <div class="mini-card"><h4>Do This Later</h4><ul id="doLater"></ul></div>
+        </div>
+      </div>
+
+      <div class="detail-panel">
+        <h4>Estimated Cost Level</h4>
+        <div class="cost-grid" id="costLevels"></div>
+        <h4>Tool Recommendations</h4>
+        <div class="tool-grid" id="toolRecommendations"></div>
+      </div>
+
+      <div class="detail-panel">
+        <h3>Document Generator</h3>
+        <div class="doc-actions">
+          <button class="doc-btn" onclick="generateDocument('cyber')">Cybersecurity Policy</button>
+          <button class="doc-btn" onclick="generateDocument('ai')">AI Usage Policy</button>
+          <button class="doc-btn" onclick="generateDocument('bcp')">Business Continuity Checklist</button>
+          <button class="doc-btn" onclick="generateDocument('grant')">Grant Readiness Checklist</button>
+        </div>
+        <textarea id="generatedDocument" rows="10" readonly placeholder="Select a document type to generate a business-ready template."></textarea>
+        <button class="btn btn-primary" onclick="downloadGeneratedDocument()">Download Generated Document</button>
+      </div>
+
+      <div class="detail-panel">
+        <h3>Monthly Reassessment</h3>
+        <div class="reassessment-row">
+          <p id="baselineStatus" style="flex:1; font-size:13px; color:#d0e8ff">No baseline saved yet.</p>
+          <button class="btn btn-outline" onclick="saveBaseline()">Save Baseline Score</button>
+          <button class="btn btn-outline" onclick="compareBaseline()">Recheck Progress</button>
+        </div>
+      </div>
+    </div><!-- end #view-action-plan -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: RISK REGISTER
+    ═══════════════════════════════════════════════ -->
+    <div id="view-risk-register" class="view">
+      <div class="view-heading">
+        <h2>Risk Register</h2>
+        <p>Identified risks with impact assessment and recommended remediation steps.</p>
+      </div>
+      <div class="detail-panel">
+        <div class="risk-table-wrap">
+          <table class="risk-table">
+            <thead>
+              <tr><th>Risk</th><th>Impact</th><th>Priority</th><th>Recommended Fix</th></tr>
+            </thead>
+            <tbody id="riskRegister"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: IMPLEMENTATION TRACKER
+    ═══════════════════════════════════════════════ -->
+    <div id="view-implementation" class="view">
+      <div class="view-heading">
+        <h2>Implementation Tracker</h2>
+        <p>Track your progress completing recommended actions.</p>
+      </div>
+      <div class="detail-panel">
+        <div class="tracker-summary">
+          <strong id="trackerPercent">0%</strong>
+          <span>implementation progress</span>
+        </div>
+        <div id="implementationTracker"></div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: FUNDING READINESS
+    ═══════════════════════════════════════════════ -->
+    <div id="view-funding" class="view">
+      <div class="view-heading">
+        <h2>Funding Readiness</h2>
+        <p>Prepare stronger grant and funding applications.</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1.15fr 1fr; gap:16px; margin-bottom:16px">
+        <div class="detail-panel">
+          <h3 id="opportunityScoreLabel">Opportunity Preparedness</h3>
+          <div class="big-score" id="opportunityScore">0%</div>
+          <p id="opportunityScoreText"></p>
+        </div>
+        <div class="detail-panel">
+          <h3>Funding Readiness Checklist</h3>
+          <ul id="fundingChecklist"></ul>
+        </div>
+        <div class="detail-panel">
+          <h3>Readiness Gap Alerts</h3>
+          <ul id="gapAlerts"></ul>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="detail-panel">
+          <h4>Application Answer Builder</h4>
+          <label>Choose a question
+            <select id="answerQuestion">
+              <option value="whatDoYouDo">What does your business do?</option>
+              <option value="customers">Who are your customers?</option>
+              <option value="problem">What problem do you solve?</option>
+              <option value="fundingUse">How would you use funding?</option>
+              <option value="impact">What impact will this create?</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" style="margin-top:10px" onclick="buildApplicationAnswer()">Generate Answer</button>
+          <textarea id="applicationAnswer" rows="8" readonly placeholder="Generated answer will appear here."></textarea>
+          <button class="btn btn-outline" onclick="downloadApplicationAnswer()">Download Answer</button>
+        </div>
+
+        <div class="detail-panel">
+          <h4>Business Profile Builder</h4>
+          <p style="color:var(--muted); font-size:13px; margin-bottom:12px">Creates a clean one-page profile summary for funding, partnership, and marketplace readiness.</p>
+          <button class="btn btn-primary" onclick="buildBusinessProfile()">Generate Business Profile</button>
+          <textarea id="businessProfileFunding" rows="12" readonly placeholder="Generated business profile will appear here."></textarea>
+          <button class="btn btn-outline" onclick="downloadBusinessProfile()">Download Profile</button>
+        </div>
+      </div>
+
+      <div class="integration-note">
+        <strong>Integration-friendly positioning:</strong>
+        Use this report to prepare stronger applications and business profiles before applying through funding platforms, marketplaces, or partner programs. This tool does not replace funding marketplaces; it helps business owners become more prepared before they apply.
+      </div>
+    </div><!-- end #view-funding -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: BUSINESS PROFILE
+    ═══════════════════════════════════════════════ -->
+    <div id="view-profile" class="view">
+      <div class="view-heading">
+        <h2>Business Profile</h2>
+        <p>Your business information, readiness snapshot, and one-page profile summary.</p>
+      </div>
+
+      <!-- Empty state shown before assessment -->
+      <div id="profileEmptyState" class="detail-panel" style="text-align:center; padding:48px 24px">
+        <div style="font-size:52px; margin-bottom:16px">🏢</div>
+        <h3 style="margin-bottom:10px">No Profile Yet</h3>
+        <p style="color:var(--muted); margin-bottom:22px; max-width:420px; margin-left:auto; margin-right:auto">Complete your business assessment to automatically populate your full profile, readiness snapshot, and downloadable one-page summary.</p>
+        <button class="btn btn-primary" onclick="showView('assessments')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+          Start Assessment
+        </button>
+      </div>
+
+      <!-- Populated profile shown after assessment -->
+      <div id="profilePopulated" style="display:none">
+
+        <!-- Header card -->
+        <div class="detail-panel" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:14px">
+          <div style="width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,rgba(96,165,250,.2),rgba(34,211,238,.1));border:1px solid rgba(96,165,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          </div>
+          <div style="flex:1">
+            <div id="profName" style="font-size:22px;font-weight:900;color:#fff"></div>
+            <div id="profIndustry" style="font-size:13px;color:var(--muted);margin-top:3px"></div>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="buildBusinessProfile(); downloadBusinessProfile()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Score snapshot row -->
+        <div class="profile-score-row" id="profScoreRow"></div>
+
+        <!-- Two-col details -->
+        <div class="grid-2">
+          <div class="detail-panel">
+            <h3>Business Details</h3>
+            <table style="width:100%;border-collapse:collapse">
+              <tbody id="profDetailsTable"></tbody>
+            </table>
+          </div>
+          <div class="detail-panel">
+            <h3>Primary Challenge</h3>
+            <p id="profChallenge" style="color:#d0e8ff; font-size:14px; line-height:1.6"></p>
+            <h4 style="margin-top:18px">Industry Recommendations</h4>
+            <ul id="profIndustryTips"></ul>
+          </div>
+        </div>
+
+        <!-- Readiness scores breakdown -->
+        <div class="detail-panel">
+          <h3>Readiness Breakdown</h3>
+          <div id="profBarsWrap"></div>
+        </div>
+
+        <!-- Generated profile text -->
+        <div class="detail-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h3 style="margin-bottom:0">One-Page Business Profile</h3>
+            <div style="display:flex;gap:8px">
+              <button class="doc-btn" onclick="buildBusinessProfile()">Regenerate</button>
+              <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" onclick="downloadBusinessProfile()">Download</button>
+            </div>
+          </div>
+          <textarea id="businessProfile" rows="14" readonly placeholder="Click Regenerate to build your one-page profile."></textarea>
+        </div>
+
+      </div><!-- end profilePopulated -->
+    </div><!-- end #view-profile -->
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: POLICY & CHECKLISTS
+    ═══════════════════════════════════════════════ -->
+    <div id="view-policies" class="view">
+      <div class="view-heading">
+        <h2>Policy &amp; Checklists</h2>
+        <p>Basic compliance checklists and generated policy documents.</p>
+      </div>
+      <div class="detail-panel">
+        <h3>Basic Compliance Checklist</h3>
+        <ul id="complianceChecklist"></ul>
+      </div>
+      <div class="detail-panel">
+        <h3>Document Generator</h3>
+        <div class="doc-actions">
+          <button class="doc-btn" onclick="generateDocument('cyber')">Cybersecurity Policy</button>
+          <button class="doc-btn" onclick="generateDocument('ai')">AI Usage Policy</button>
+          <button class="doc-btn" onclick="generateDocument('bcp')">Business Continuity Checklist</button>
+          <button class="doc-btn" onclick="generateDocument('grant')">Grant Readiness Checklist</button>
+        </div>
+        <textarea id="generatedDocument2" rows="12" readonly placeholder="Select a document type above."></textarea>
+        <button class="btn btn-primary" onclick="downloadGeneratedDocument2()">Download Document</button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: GROWTH PLANNER
+    ═══════════════════════════════════════════════ -->
+    <div id="view-growth" class="view">
+      <div class="view-heading">
+        <h2>Growth Planner</h2>
+        <p>Customer growth strategies and roadmap tailored to your industry.</p>
+      </div>
+      <div class="detail-panel">
+        <h3>Customer Growth Planner</h3>
+        <ul id="growthPlanner"></ul>
+      </div>
+      <div class="detail-panel">
+        <h3>30 / 60 / 90-Day Roadmap</h3>
+        <div class="roadmap">
+          <div><strong>30 Days</strong><p id="growthRoad30">Run your first assessment to see your personalized roadmap.</p></div>
+          <div><strong>60 Days</strong><p id="growthRoad60"></p></div>
+          <div><strong>90 Days</strong><p id="growthRoad90"></p></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: CASH-FLOW SNAPSHOT
+    ═══════════════════════════════════════════════ -->
+    <div id="view-cashflow" class="view">
+      <div class="view-heading">
+        <h2>Cash-Flow Snapshot</h2>
+        <p>Monthly financial overview and runway estimate.</p>
+      </div>
+      <div class="detail-panel" style="max-width:520px">
+        <h3>Monthly Cash Flow</h3>
+        <div class="form-grid-2">
+          <label>Monthly Revenue ($)
+            <input id="monthlyRevenue" type="number" min="0" value="5000" oninput="calculateCashFlow()" />
+          </label>
+          <label>Monthly Expenses ($)
+            <input id="monthlyExpenses" type="number" min="0" value="3500" oninput="calculateCashFlow()" />
+          </label>
+        </div>
+        <div class="form-grid-2" style="margin-top:14px">
+          <label>Cash on Hand ($)
+            <input id="cashOnHand" type="number" min="0" value="8000" oninput="calculateCashFlow()" />
+          </label>
+          <label>Owner Goal / Reserve ($)
+            <input id="reserveGoal" type="number" min="0" value="10000" oninput="calculateCashFlow()" />
+          </label>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px" onclick="calculateCashFlow()">Calculate Cash Snapshot</button>
+        <div id="cashFlowResult" class="cash-result"></div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: REPORTS
+    ═══════════════════════════════════════════════ -->
+    <div id="view-reports" class="view">
+      <div class="view-heading">
+        <h2>Reports</h2>
+        <p>Export your full assessment report and generated documents.</p>
+      </div>
+      <div class="detail-panel">
+        <h3>Export Options</h3>
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="downloadReport()">Download Full Text Report</button>
+          <button class="btn btn-outline" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+        <p style="margin-top:14px; color:var(--muted); font-size:13px">Run an assessment first to enable report export.</p>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: RESOURCES
+    ═══════════════════════════════════════════════ -->
+    <div id="view-resources" class="view">
+      <div class="view-heading">
+        <h2>Resources</h2>
+        <p>Curated free and low-cost resources for cybersecurity, AI adoption, funding, and business operations.</p>
+      </div>
+
+      <div class="grid-2">
+
+        <!-- Cybersecurity -->
+        <div class="detail-panel">
+          <div class="resource-header" style="border-color:rgba(34,211,238,.3)">
+            <div class="resource-header-icon" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.25)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>Cybersecurity Resources</h3>
+          </div>
+          <ul class="resource-list">
+            <li>
+              <a href="https://www.nist.gov/cybersecurity/small-business-cybersecurity" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">NIST Small Business Cybersecurity Corner</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Official NIST guidance tailored for small businesses — risk management, checklists, and frameworks.</p>
+            </li>
+            <li>
+              <a href="https://www.cisa.gov/resources-tools/resources/free-cybersecurity-services-and-tools" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">CISA Free Cybersecurity Services &amp; Tools</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Vetted free tools from the Cybersecurity &amp; Infrastructure Security Agency including scanning and training.</p>
+            </li>
+            <li>
+              <a href="https://www.ftc.gov/business-guidance/small-businesses/cybersecurity" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">FTC Cybersecurity for Small Business</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Practical FTC guidance on securing devices, protecting data, and training employees.</p>
+            </li>
+            <li>
+              <a href="https://www.sba.gov/business-guide/manage-your-business/strengthen-your-cybersecurity" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">SBA Cybersecurity Guide</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">SBA step-by-step cybersecurity guidance for small business owners.</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- AI Adoption -->
+        <div class="detail-panel">
+          <div class="resource-header" style="border-color:rgba(167,139,250,.3)">
+            <div class="resource-header-icon" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.25)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="7" r="3"/><circle cx="8" cy="15" r="1" fill="#a78bfa"/><circle cx="12" cy="15" r="1" fill="#a78bfa"/><circle cx="16" cy="15" r="1" fill="#a78bfa"/></svg>
+            </div>
+            <h3>AI Adoption Resources</h3>
+          </div>
+          <ul class="resource-list">
+            <li>
+              <a href="https://www.sba.gov/business-guide/manage-your-business/use-ai-your-business" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">SBA AI for Small Business Guide</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">SBA guide to responsibly adopting AI tools in small business operations.</p>
+            </li>
+            <li>
+              <a href="https://grow.google/certificates/ai-essentials/" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Google AI Essentials Course</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Beginner-friendly course covering AI fundamentals and practical use in everyday work.</p>
+            </li>
+            <li>
+              <a href="https://www.microsoft.com/en-us/microsoft-copilot/microsoft-copilot-for-work" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Microsoft Copilot for Business</span>
+                <span class="resource-tag paid">Paid</span>
+              </a>
+              <p class="resource-desc">AI assistant built into Microsoft 365 for drafting, summarizing, and analyzing business documents.</p>
+            </li>
+            <li>
+              <a href="https://chat.openai.com" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">ChatGPT — Free Tier Available</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Use AI to draft emails, create checklists, write policy drafts, and brainstorm business ideas.</p>
+            </li>
+            <li>
+              <a href="https://claude.ai" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Claude by Anthropic — Free Tier</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Powerful AI assistant for writing, analysis, and business document generation.</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Funding -->
+        <div class="detail-panel">
+          <div class="resource-header" style="border-color:rgba(250,204,21,.3)">
+            <div class="resource-header-icon" style="background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.25)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+            <h3>Funding Resources</h3>
+          </div>
+          <ul class="resource-list">
+            <li>
+              <a href="https://www.sba.gov/funding-programs/loans" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">SBA Loans &amp; Grants Portal</span>
+                <span class="resource-tag free">Free to Apply</span>
+              </a>
+              <p class="resource-desc">Browse SBA loan programs, grants, and funding opportunities for small businesses.</p>
+            </li>
+            <li>
+              <a href="https://www.sbir.gov" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">SBIR/STTR Innovation Programs</span>
+                <span class="resource-tag free">Grants</span>
+              </a>
+              <p class="resource-desc">Federal R&amp;D grants for small businesses working on technology and innovation projects.</p>
+            </li>
+            <li>
+              <a href="https://www.sba.gov/local-assistance/resource-partners/small-business-development-centers-sbdc" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Local SBDC — Small Business Development Centers</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Free one-on-one business advising, loan packaging help, and grant application support near you.</p>
+            </li>
+            <li>
+              <a href="https://www.cdfifund.gov/programs-training/programs/cdfi-program" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Community Development Financial Institutions (CDFIs)</span>
+                <span class="resource-tag free">Low-Interest</span>
+              </a>
+              <p class="resource-desc">Mission-driven lenders offering affordable loans and capital to underserved small businesses.</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Business Operations -->
+        <div class="detail-panel">
+          <div class="resource-header" style="border-color:rgba(52,211,153,.3)">
+            <div class="resource-header-icon" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <h3>Business Operations</h3>
+          </div>
+          <ul class="resource-list">
+            <li>
+              <a href="https://www.irs.gov/businesses/small-businesses-self-employed" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">IRS Small Business Tax Center</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Official IRS guidance on small business taxes, deductions, and filing requirements.</p>
+            </li>
+            <li>
+              <a href="https://www.score.org" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">SCORE Mentorship</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">Free business mentoring from experienced executives. Get matched with a mentor today.</p>
+            </li>
+            <li>
+              <a href="https://quickbooks.intuit.com/small-business/" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">QuickBooks Small Business</span>
+                <span class="resource-tag paid">Paid / Trial</span>
+              </a>
+              <p class="resource-desc">Accounting, invoicing, payroll, and cash-flow tracking built for small businesses.</p>
+            </li>
+            <li>
+              <a href="https://www.waveapps.com" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Wave — Free Accounting &amp; Invoicing</span>
+                <span class="resource-tag free">Free</span>
+              </a>
+              <p class="resource-desc">100% free invoicing, accounting, and receipt tracking for small businesses.</p>
+            </li>
+            <li>
+              <a href="https://calendly.com" target="_blank" rel="noopener" class="resource-link">
+                <span class="resource-name">Calendly — Scheduling Automation</span>
+                <span class="resource-tag free">Free Tier</span>
+              </a>
+              <p class="resource-desc">Eliminate back-and-forth booking by sharing a link that lets clients schedule appointments automatically.</p>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: HELP & SUPPORT
+    ═══════════════════════════════════════════════ -->
+    <div id="view-help" class="view">
+      <div class="view-heading">
+        <h2>Help &amp; Support</h2>
+        <p>Everything you need to get the most out of your SmallBiz Cyber &amp; AI Readiness Advisor.</p>
+      </div>
+
+      <!-- Quick-start steps -->
+      <div class="detail-panel" style="margin-bottom:14px">
+        <h3>Getting Started — 4 Steps</h3>
+        <div class="help-steps">
+          <div class="help-step" onclick="showView('assessments')">
+            <div class="help-step-num">1</div>
+            <div>
+              <strong>Run Your Assessment</strong>
+              <p>Click <em>Assessments</em> in the sidebar, pick a sample business or enter your own details, then hit <em>Generate Readiness Report</em>.</p>
+            </div>
+          </div>
+          <div class="help-step" onclick="showView('dashboard')">
+            <div class="help-step-num">2</div>
+            <div>
+              <strong>Review Your Dashboard</strong>
+              <p>Your scores populate the Dashboard automatically — see your Overall, Cyber, AI, Operational, and Funding readiness at a glance.</p>
+            </div>
+          </div>
+          <div class="help-step" onclick="showView('action-plan')">
+            <div class="help-step-num">3</div>
+            <div>
+              <strong>Work Your Action Plan</strong>
+              <p>Go to <em>Action Plan</em> to see prioritized tasks, generate policy documents, and track your baseline progress month over month.</p>
+            </div>
+          </div>
+          <div class="help-step" onclick="downloadReport()">
+            <div class="help-step-num">4</div>
+            <div>
+              <strong>Export Your Report</strong>
+              <p>Use the <em>Export Report</em> button in the top bar to download your full assessment as a text file for sharing or records.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score explanations — expandable -->
+      <div class="detail-panel" style="margin-bottom:14px">
+        <h3>Understanding Your Scores</h3>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Click any score card to learn what drives it, what strong performance looks like, and exactly how to improve.</p>
+        <div class="score-explain-grid">
+
+          <!-- Cybersecurity -->
+          <div class="score-explain-card" onclick="toggleScoreCard(this)" style="--sc:#22d3ee;--scbg:rgba(34,211,238,.08);--scborder:rgba(34,211,238,.25)">
+            <div class="sc-header">
+              <div class="sc-icon" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.3)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="sc-title-wrap">
+                <strong class="sc-title" style="color:#22d3ee">Cybersecurity Score</strong>
+                <span class="sc-subtitle">MFA · Backups · Security Training</span>
+              </div>
+              <span class="sc-chevron">▾</span>
+            </div>
+            <p class="sc-summary">Based on whether MFA is enabled, backups are in place, and staff have security training or policies.</p>
+            <div class="sc-expanded">
+              <div class="sc-section">
+                <div class="sc-section-title">📊 What factors make up this score?</div>
+                <ul>
+                  <li><strong>Multi-Factor Authentication (MFA)</strong> — Is MFA enabled on email, banking, cloud apps, and admin accounts? (+33 pts max)</li>
+                  <li><strong>Backups</strong> — Are important files backed up and tested regularly? Manual/partial vs. automated counts. (+33 pts max)</li>
+                  <li><strong>Security Training / Policy</strong> — Do you have a written policy or have staff received any security awareness training? (+34 pts max)</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">✅ What does a strong score look like?</div>
+                <ul>
+                  <li>MFA enabled on all critical accounts (email, banking, cloud tools)</li>
+                  <li>Automated, tested backups running at least weekly</li>
+                  <li>A written cybersecurity policy and at least basic staff training</li>
+                  <li>Score of 75%+ = Low cyber risk</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">⚠️ Common gaps small businesses face</div>
+                <ul>
+                  <li>Using shared passwords with no MFA — one breach exposes everything</li>
+                  <li>Backups exist but are never tested — you won't know they fail until you need them</li>
+                  <li>No written policy means staff can't follow rules that don't exist</li>
+                  <li>Free email accounts (Gmail/Yahoo) without MFA are the #1 attack vector for small businesses</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">🚀 How to improve your score — in order</div>
+                <ol>
+                  <li>Enable MFA on Google/Microsoft/banking today — free, takes 5 minutes</li>
+                  <li>Set up automated backups to Google Drive, OneDrive, or an external drive</li>
+                  <li>Use our <em>Document Generator</em> to create a free Cybersecurity Policy in one click</li>
+                  <li>Share a 15-minute phishing awareness video with your team</li>
+                </ol>
+              </div>
+              <div class="sc-action-row">
+                <button class="btn btn-primary" style="font-size:12px;padding:8px 14px" onclick="showView('action-plan');event.stopPropagation()">View Action Plan →</button>
+                <button class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="generateDocument('cyber');showView('action-plan');event.stopPropagation()">Generate Cyber Policy →</button>
+                <a href="https://www.cisa.gov/resources-tools/resources/free-cybersecurity-services-and-tools" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">Free CISA Tools ↗</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Readiness -->
+          <div class="score-explain-card" onclick="toggleScoreCard(this)" style="--sc:#a78bfa;--scbg:rgba(167,139,250,.08);--scborder:rgba(167,139,250,.25)">
+            <div class="sc-header">
+              <div class="sc-icon" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="7" r="3"/><line x1="8" y1="7" x2="3" y2="11"/><line x1="16" y1="7" x2="21" y2="11"/><circle cx="8" cy="15" r="1" fill="#a78bfa"/><circle cx="12" cy="15" r="1" fill="#a78bfa"/><circle cx="16" cy="15" r="1" fill="#a78bfa"/></svg>
+              </div>
+              <div class="sc-title-wrap">
+                <strong class="sc-title" style="color:#a78bfa">AI Readiness Score</strong>
+                <span class="sc-subtitle">AI Usage · Adoption Stage · Workflow Integration</span>
+              </div>
+              <span class="sc-chevron">▾</span>
+            </div>
+            <p class="sc-summary">Reflects your current level of AI tool adoption — from no usage through active integration into daily workflows.</p>
+            <div class="sc-expanded">
+              <div class="sc-section">
+                <div class="sc-section-title">📊 What factors make up this score?</div>
+                <ul>
+                  <li><strong>AI Usage</strong> — Are you actively using AI tools (ChatGPT, Claude, Gemini, Copilot)? None / Testing / Actively using. (+100 pts max)</li>
+                  <li>This score is intentionally focused — even testing AI tools puts you ahead of most small businesses.</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">✅ What does a strong score look like?</div>
+                <ul>
+                  <li>AI tools used weekly in at least one business workflow</li>
+                  <li>Examples: drafting emails, writing proposals, answering customer questions, summarizing notes</li>
+                  <li>Staff understand what AI can and can't do for the business</li>
+                  <li>An AI usage policy exists (even a one-pager)</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">💡 Quick AI wins for small businesses</div>
+                <ul>
+                  <li><strong>Customer follow-up emails</strong> — paste in a job description, ask AI to write a follow-up message</li>
+                  <li><strong>Proposal/quote drafting</strong> — describe the project and let AI create a first draft</li>
+                  <li><strong>Social media posts</strong> — give AI your offer details and ask for 5 post variations</li>
+                  <li><strong>FAQ writing</strong> — ask AI to answer your 10 most common customer questions</li>
+                  <li><strong>Policy documents</strong> — use our Document Generator to create policies instantly</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">🚀 How to improve your score — in order</div>
+                <ol>
+                  <li>Sign up for a free tier: <a href="https://claude.ai" target="_blank" rel="noopener" style="color:#a78bfa">Claude.ai</a> or <a href="https://chat.openai.com" target="_blank" rel="noopener" style="color:#a78bfa">ChatGPT</a> — both free</li>
+                  <li>Pick ONE repetitive task this week and ask AI to do it for you</li>
+                  <li>Generate an AI Usage Policy using our Document Generator</li>
+                  <li>Reassess — selecting "Testing" on the next run will raise your score immediately</li>
+                </ol>
+              </div>
+              <div class="sc-action-row">
+                <button class="btn btn-primary" style="font-size:12px;padding:8px 14px" onclick="generateDocument('ai');showView('action-plan');event.stopPropagation()">Generate AI Policy →</button>
+                <a href="https://claude.ai" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">Try Claude Free ↗</a>
+                <a href="https://grow.google/certificates/ai-essentials/" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">Google AI Course ↗</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Operational -->
+          <div class="score-explain-card" onclick="toggleScoreCard(this)" style="--sc:#34d399;--scbg:rgba(52,211,153,.08);--scborder:rgba(52,211,153,.25)">
+            <div class="sc-header">
+              <div class="sc-icon" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07M8.46 8.46a5 5 0 000 7.07"/></svg>
+              </div>
+              <div class="sc-title-wrap">
+                <strong class="sc-title" style="color:#34d399">Operational Score</strong>
+                <span class="sc-subtitle">Digital Tools · Automation · Workflow Efficiency</span>
+              </div>
+              <span class="sc-chevron">▾</span>
+            </div>
+            <p class="sc-summary">Measures your use of digital tools and automation to run the business efficiently day-to-day.</p>
+            <div class="sc-expanded">
+              <div class="sc-section">
+                <div class="sc-section-title">📊 What factors make up this score?</div>
+                <ul>
+                  <li><strong>Digital Tools</strong> — Are you using mostly paper/manual processes, some digital tools, or fully integrated tools? (+50 pts max)</li>
+                  <li><strong>Automation Level</strong> — Are repetitive tasks automated? None / Limited / Moderate or strong. (+50 pts max)</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">✅ What does a strong score look like?</div>
+                <ul>
+                  <li>Scheduling, invoicing, or communications use digital tools consistently</li>
+                  <li>At least one repetitive task is automated (reminders, follow-ups, reporting)</li>
+                  <li>Staff spend less time on manual data entry and more time serving customers</li>
+                  <li>Score of 75%+ = Strong operational foundation</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">⚙️ High-impact automation for small businesses</div>
+                <ul>
+                  <li><strong>Scheduling</strong> — <a href="https://calendly.com" target="_blank" rel="noopener" style="color:#34d399">Calendly</a> (free) eliminates phone-tag for appointments</li>
+                  <li><strong>Invoicing</strong> — <a href="https://www.waveapps.com" target="_blank" rel="noopener" style="color:#34d399">Wave</a> (free) automates invoices, receipts, and reminders</li>
+                  <li><strong>Customer follow-up</strong> — email sequences automatically follow up after a sale or inquiry</li>
+                  <li><strong>Social media</strong> — schedule a week of posts in one sitting using Buffer or Meta Planner</li>
+                  <li><strong>Accounting</strong> — connect your bank to <a href="https://quickbooks.intuit.com" target="_blank" rel="noopener" style="color:#34d399">QuickBooks</a> and stop manual entry</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">🚀 How to improve your score — in order</div>
+                <ol>
+                  <li>List your top 3 most time-consuming manual tasks this week</li>
+                  <li>Pick one and find a free digital tool that handles it (Calendly, Wave, or Google Forms)</li>
+                  <li>Document the new workflow so staff can follow it consistently</li>
+                  <li>Reassess — moving from "None" to "Limited" automation will lift your score by 25 pts</li>
+                </ol>
+              </div>
+              <div class="sc-action-row">
+                <button class="btn btn-primary" style="font-size:12px;padding:8px 14px" onclick="showView('implementation');event.stopPropagation()">Implementation Tracker →</button>
+                <a href="https://calendly.com" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">Calendly Free ↗</a>
+                <a href="https://www.waveapps.com" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">Wave Free ↗</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Funding Readiness -->
+          <div class="score-explain-card" onclick="toggleScoreCard(this)" style="--sc:#facc15;--scbg:rgba(250,204,21,.08);--scborder:rgba(250,204,21,.25)">
+            <div class="sc-header">
+              <div class="sc-icon" style="background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.3)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+              </div>
+              <div class="sc-title-wrap">
+                <strong class="sc-title" style="color:#facc15">Funding Readiness</strong>
+                <span class="sc-subtitle">Business Docs · Online Presence · Growth Plan</span>
+              </div>
+              <span class="sc-chevron">▾</span>
+            </div>
+            <p class="sc-summary">Evaluates whether your business documents, online presence, and growth plan are ready for grants or funding applications.</p>
+            <div class="sc-expanded">
+              <div class="sc-section">
+                <div class="sc-section-title">📊 What factors make up this score?</div>
+                <ul>
+                  <li><strong>Business Documents</strong> — Are your registration docs, service descriptions, and financials organized? (+33 pts max)</li>
+                  <li><strong>Online Presence</strong> — Do you have a website, Google Business Profile, or strong social presence? (+33 pts max)</li>
+                  <li><strong>Growth Plan</strong> — Do you have documented goals, a roadmap, or a business plan? (+34 pts max)</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">✅ What does funding-ready look like?</div>
+                <ul>
+                  <li>Business registration, EIN, and any licenses are organized and accessible</li>
+                  <li>You can explain your business mission, customers, problem, and impact in writing in under 2 minutes</li>
+                  <li>A website or Google Business Profile exists and is up to date</li>
+                  <li>You have a written goal or plan for the next 12 months</li>
+                  <li>Score of 70%+ means you're ready to apply for most small business programs</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">💸 What funding is available right now?</div>
+                <ul>
+                  <li><a href="https://www.sba.gov/funding-programs/loans" target="_blank" rel="noopener" style="color:#facc15">SBA Loan Programs</a> — Low-interest loans up to $5M for eligible small businesses</li>
+                  <li><a href="https://www.score.org" target="_blank" rel="noopener" style="color:#facc15">SCORE Mentors</a> — Free business advisors who help with funding applications</li>
+                  <li><a href="https://www.sba.gov/local-assistance/resource-partners/small-business-development-centers-sbdc" target="_blank" rel="noopener" style="color:#facc15">SBDC Centers</a> — Free local help preparing grant and loan applications</li>
+                  <li>Local and state grants — many offer $2,500–$25,000 for small businesses in tech, food, and services</li>
+                </ul>
+              </div>
+              <div class="sc-section">
+                <div class="sc-section-title">🚀 How to improve your score — in order</div>
+                <ol>
+                  <li>Create a one-page business summary (use our <em>Business Profile Builder</em>)</li>
+                  <li>Set up a free Google Business Profile if you don't have a website</li>
+                  <li>Write a simple 30/60/90-day goal list — even a half-page counts as a growth plan</li>
+                  <li>Use our <em>Grant Readiness Checklist</em> to identify every missing document before applying</li>
+                </ol>
+              </div>
+              <div class="sc-action-row">
+                <button class="btn btn-primary" style="font-size:12px;padding:8px 14px" onclick="showView('funding');event.stopPropagation()">Funding Readiness View →</button>
+                <button class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="generateDocument('grant');showView('action-plan');event.stopPropagation()">Grant Checklist →</button>
+                <a href="https://www.sba.gov/funding-programs/loans" target="_blank" rel="noopener" class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="event.stopPropagation()">SBA Loans ↗</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="detail-panel" style="margin-bottom:14px">
+        <h3>Frequently Asked Questions</h3>
+        <div class="faq-list">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              How often should I reassess?
+              <span class="faq-arrow">▾</span>
+            </button>
+            <div class="faq-a">Reassess every 30 days to track improvement. Use <em>Save Baseline Score</em> in the Action Plan view after your first assessment, then compare progress on your next run.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              Is my data stored anywhere?
+              <span class="faq-arrow">▾</span>
+            </button>
+            <div class="faq-a">No data is sent to any server. All assessment data stays in your browser session. Your Implementation Tracker and Baseline Score use your browser's localStorage only.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              Can I use this for multiple businesses?
+              <span class="faq-arrow">▾</span>
+            </button>
+            <div class="faq-a">Yes — simply re-run the assessment with different business details. Each submission updates the dashboard and report. Use <em>Export Report</em> to save a copy before running a new assessment.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              How do I generate a policy document?
+              <span class="faq-arrow">▾</span>
+            </button>
+            <div class="faq-a">Go to <em>Action Plan</em> → <em>Document Generator</em>. Choose from Cybersecurity Policy, AI Usage Policy, Business Continuity Checklist, or Grant Readiness Checklist, then download the result.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              What does the Implementation Tracker do?
+              <span class="faq-arrow">▾</span>
+            </button>
+            <div class="faq-a">It lists 8 priority action items with checkboxes. Check each one off as you complete it — progress is saved in your browser and reflected in the Dashboard donut chart.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact / Support links -->
+      <div class="detail-panel">
+        <h3>Contact &amp; Support</h3>
+        <div class="help-contact-grid">
+          <a href="https://champtron-systems.com" target="_blank" rel="noopener" class="help-contact-card">
+            <div class="help-contact-icon" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.25)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+            </div>
+            <strong>Champtron Systems LLC</strong>
+            <span>Visit our website</span>
+          </a>
+          <a href="mailto:support@champtron-systems.com" class="help-contact-card">
+            <div class="help-contact-icon" style="background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.25)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <strong>Email Support</strong>
+            <span>support@champtron-systems.com</span>
+          </a>
+          <a href="https://champtron-systems.com/smallbiz-ai/" target="_blank" rel="noopener" class="help-contact-card">
+            <div class="help-contact-icon" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </div>
+            <strong>Live Demo</strong>
+            <span>View hosted version</span>
+          </a>
+          <div class="help-contact-card" style="cursor:default" onclick="showView('assessments')">
+            <div class="help-contact-icon" style="background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.25)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+            </div>
+            <strong>Start Assessment</strong>
+            <span>Run your readiness check now</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════
+         VIEW: ABOUT
+    ═══════════════════════════════════════════════ -->
+    <div id="view-about" class="view">
+      <div class="view-heading">
+        <h2>About This Tool</h2>
+      </div>
+
+      <!-- Hero summary -->
+      <div class="about-hero">
+        <div class="about-hero-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <h3 class="about-hero-title">SmallBiz Cyber &amp; AI Readiness Advisor</h3>
+          <p class="about-hero-sub">Built by <strong>Champtron Systems LLC</strong> — Empowering small businesses with cybersecurity &amp; AI readiness.</p>
+        </div>
+      </div>
+      <p class="about-intro">A small business owner answers ~15 questions and walks away with a scored readiness report, a set of tailored documents, and a clear action plan — no consultant, no jargon, no cost.</p>
+
+      <!-- What it does -->
+      <div class="about-section-title">What It Does</div>
+      <div class="about-steps">
+
+        <div class="about-step">
+          <div class="about-step-num" style="background:rgba(34,211,238,.12);color:#22d3ee;border-color:rgba(34,211,238,.3);">1</div>
+          <div class="about-step-body">
+            <strong>Assessment</strong>
+            <p>You fill out a short questionnaire covering your industry, business size, current tech tools, security practices, AI usage, and funding situation.</p>
+          </div>
+        </div>
+
+        <div class="about-step">
+          <div class="about-step-num" style="background:rgba(167,139,250,.12);color:#a78bfa;border-color:rgba(167,139,250,.3);">2</div>
+          <div class="about-step-body">
+            <strong>Scores &amp; Analysis</strong>
+            <p>The tool calculates four readiness scores — <span style="color:#22d3ee">Cyber</span>, <span style="color:#a78bfa">AI</span>, <span style="color:#34d399">Operations</span>, and <span style="color:#facc15">Funding</span> — and benchmarks you against your industry.</p>
+          </div>
+        </div>
+
+        <div class="about-step">
+          <div class="about-step-num" style="background:rgba(52,211,153,.12);color:#34d399;border-color:rgba(52,211,153,.3);">3</div>
+          <div class="about-step-body">
+            <strong>Personalized Output</strong>
+            <p>Receive a prioritized action plan, risk register, ROI &amp; time-savings estimates, and industry-specific recommendations you can act on immediately.</p>
+          </div>
+        </div>
+
+        <div class="about-step">
+          <div class="about-step-num" style="background:rgba(250,204,21,.12);color:#facc15;border-color:rgba(250,204,21,.3);">4</div>
+          <div class="about-step-body">
+            <strong>Document Generators</strong>
+            <p>Produces ready-to-download documents: business profile, password &amp; acceptable-use policies, incident response plan, compliance checklist, and grant application answers.</p>
+          </div>
+        </div>
+
+        <div class="about-step">
+          <div class="about-step-num" style="background:rgba(96,165,250,.12);color:#60a5fa;border-color:rgba(96,165,250,.3);">5</div>
+          <div class="about-step-body">
+            <strong>Planning &amp; Tracking Tools</strong>
+            <p>Implementation tracker, customer growth planner, cash-flow snapshot, and funding readiness prep — all pre-populated from your assessment answers.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Feature grid -->
+      <div class="about-section-title">Everything This Tool Produces</div>
+      <div class="about-feat-grid">
+        <div class="about-feat-card" style="--afc:#22d3ee">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Cyber Readiness Score
+        </div>
+        <div class="about-feat-card" style="--afc:#a78bfa">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          AI Readiness Score
+        </div>
+        <div class="about-feat-card" style="--afc:#facc15">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Funding Readiness Score
+        </div>
+        <div class="about-feat-card" style="--afc:#34d399">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+          Industry-Specific Recommendations
+        </div>
+        <div class="about-feat-card" style="--afc:#60a5fa">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          ROI &amp; Time-Savings Estimates
+        </div>
+        <div class="about-feat-card" style="--afc:#22d3ee">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Executive Report Export
+        </div>
+        <div class="about-feat-card" style="--afc:#a78bfa">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Business Owner Action Center
+        </div>
+        <div class="about-feat-card" style="--afc:#34d399">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          Policy &amp; Checklist Generator
+        </div>
+        <div class="about-feat-card" style="--afc:#facc15">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+          Funding Readiness &amp; Submission Prep
+        </div>
+        <div class="about-feat-card" style="--afc:#60a5fa">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Application Answer Builder
+        </div>
+        <div class="about-feat-card" style="--afc:#22d3ee">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Compliance Checklist &amp; Implementation Tracker
+        </div>
+        <div class="about-feat-card" style="--afc:#34d399">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Customer Growth &amp; Cash-Flow Snapshot
+        </div>
+      </div>
+
+      <!-- Why built -->
+      <div class="about-why-row">
+        <div class="about-why-card">
+          <div class="about-why-icon" style="color:#22d3ee">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <strong>Why It Was Built</strong>
+          <p>Most small business owners can't afford a cybersecurity, AI, or operations consultant — yet they face the same risks as larger companies. This tool turns complex readiness questions into simple, actionable answers.</p>
+        </div>
+        <div class="about-why-card">
+          <div class="about-why-icon" style="color:#34d399">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <strong>Who It's For</strong>
+          <p>Restaurants, nonprofits, contractors, creators, consultants, retail shops, online stores, and service businesses — any small business that wants to modernize, reduce risk, and grow.</p>
+        </div>
+        <div class="about-why-card">
+          <div class="about-why-icon" style="color:#a78bfa">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <strong>Why It Scales</strong>
+          <p>Industry-specific scoring, self-service reporting, and pre-built document templates mean the tool delivers real value without any manual customization per user.</p>
+        </div>
+      </div>
+
+      <!-- Skip Grant blurb -->
+      <div class="detail-panel" style="border-color:rgba(250,204,21,.2);margin-top:24px;">
+        <h3 style="color:#facc15;margin-bottom:12px;">&#127942; Skip Grant Mode</h3>
+        <p style="margin-bottom:10px;"><strong>What was built:</strong> An AI-powered readiness advisor that helps entrepreneurs and small business owners understand their cybersecurity posture, AI adoption readiness, operational gaps, and growth opportunities. The tool generates readiness scores, practical recommendations, ROI estimates, and a 30/60/90-day roadmap that business owners can act on immediately.</p>
+        <p style="margin-bottom:10px;"><strong>Problem solved:</strong> Many small business owners cannot afford dedicated cybersecurity, AI, or operations consultants, yet they still need clear guidance to modernize, reduce risk, and grow. This tool turns complex technology and business readiness questions into a simple assessment with useful, actionable outputs.</p>
+        <p><strong>Why it scales:</strong> The platform supports restaurants, nonprofits, contractors, creators, consultants, online stores, retail shops, and service businesses through industry-specific recommendations and self-service reporting.</p>
+      </div>
+
+    </div>
+
+  </div><!-- end .content -->
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <span>© 2025 Champtron Systems LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="#" onclick="openLegalModal('privacy');return false;">Privacy Policy</a>
+      <a href="#" onclick="openLegalModal('terms');return false;">Terms of Use</a>
+      <a href="mailto:support@champtron-systems.com">Contact</a>
+    </div>
+  </footer>
+
+</div><!-- end .main-area -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     PRIVACY / TERMS MODAL
+════════════════════════════════════════════════════════════ -->
+<div id="legalModal" class="legal-modal-overlay" style="display:none;" onclick="closeLegalModal(event)">
+  <div class="legal-modal">
+    <div class="legal-modal-header">
+      <h3 id="legalModalTitle">Privacy Policy</h3>
+      <button class="legal-modal-close" onclick="closeLegalModal(null)">&times;</button>
+    </div>
+    <div class="legal-modal-body" id="legalModalBody"></div>
+  </div>
+</div>
+
+<!-- MOBILE TOPBAR (shown on small screens) -->
+<div class="mobile-topbar" id="mobileTopbar">
+  <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Open menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <span class="mobile-title">SmallBiz Advisor</span>
+  <div style="width:36px"></div>
+</div>
+<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay" onclick="closeMobileMenu()"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
