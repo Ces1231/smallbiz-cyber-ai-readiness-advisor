@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmallBiz Cyber & AI Readiness Advisor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <div class="brand">
+        <div class="logo">CS</div>
+        <div>
+          <strong>Champtron Systems LLC</strong>
+          <span>Built for entrepreneurs and small business owners</span>
+        </div>
+      </div>
+      <a href="#assessment" class="nav-cta">Start Assessment</a>
+    </nav>
+
+    <section class="hero-grid">
+      <div>
+        <p class="eyebrow">AI Builder Grant Demo</p>
+        <h1>SmallBiz Cyber & AI Readiness Advisor</h1>
+        <p class="lead">
+          A practical AI-powered readiness tool that helps entrepreneurs identify cybersecurity gaps,
+          AI automation opportunities, funding readiness issues, ROI potential, and a 30/60/90-day growth roadmap.
+        </p>
+        <div class="cta-row">
+          <a href="#assessment" class="button primary">Run Demo</a>
+          <button class="button secondary" onclick="loadSample('restaurant')">Load Sample Business</button>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h3>What the demo produces</h3>
+        <ul>
+          <li>Cyber readiness score</li>
+          <li>AI readiness score</li>
+          <li>Funding readiness score</li>
+          <li>Industry-specific recommendations</li>
+          <li>ROI and time-savings estimates</li>
+          <li>Executive report export</li>
+          <li>Business Owner Action Center</li>
+          <li>Policy and checklist generator</li>
+          <li>Funding readiness and submission prep</li>
+          <li>Application answer builder</li>
+          <li>Compliance checklist and implementation tracker</li>
+          <li>Customer growth and cash-flow snapshot</li>
+        </ul>
+      </div>
+    </section>
+  </header>
+
+  <main>
+    <section class="section" id="assessment">
+      <div class="section-heading">
+        <p class="eyebrow">Step 1</p>
+        <h2>Business Assessment</h2>
+        <p>Choose a sample profile or enter your own business information.</p>
+      </div>
+
+      <div class="sample-buttons">
+        <button onclick="loadSample('restaurant')">Restaurant</button>
+        <button onclick="loadSample('barber')">Barber / Beauty Shop</button>
+        <button onclick="loadSample('nonprofit')">Nonprofit</button>
+        <button onclick="loadSample('contractor')">Contractor</button>
+        <button onclick="loadSample('online')">Online Store</button>
+      </div>
+
+      <form id="assessmentForm" class="form-card">
+        <div class="grid two">
+          <label>Business Name
+            <input id="businessName" placeholder="Example: Bright Path Café" required />
+          </label>
+          <label>Industry
+            <select id="industry">
+              <option value="restaurant">Restaurant</option>
+              <option value="barber">Barber / Beauty Shop</option>
+              <option value="nonprofit">Nonprofit</option>
+              <option value="contractor">Contractor</option>
+              <option value="online">Online Store</option>
+              <option value="consultant">Consultant / Professional Services</option>
+              <option value="retail">Retail</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Primary business challenge
+          <textarea id="challenge" rows="3" placeholder="Describe the biggest operational, security, or growth challenge."></textarea>
+        </label>
+
+        <div class="grid three">
+          <label>MFA enabled?
+            <select id="mfa"><option value="0">No</option><option value="1">Some accounts</option><option value="2">Yes, most critical accounts</option></select>
+          </label>
+          <label>Backups in place?
+            <select id="backups"><option value="0">No</option><option value="1">Partial/manual</option><option value="2">Automated or tested</option></select>
+          </label>
+          <label>Cyber policy/training?
+            <select id="training"><option value="0">No</option><option value="1">Informal</option><option value="2">Documented/training exists</option></select>
+          </label>
+        </div>
+
+        <div class="grid three">
+          <label>Uses digital tools?
+            <select id="digitalTools"><option value="0">Mostly paper/manual</option><option value="1">Some tools</option><option value="2">Integrated tools</option></select>
+          </label>
+          <label>Automation level
+            <select id="automation"><option value="0">None</option><option value="1">Limited</option><option value="2">Moderate/strong</option></select>
+          </label>
+          <label>AI usage
+            <select id="aiUsage"><option value="0">None</option><option value="1">Testing</option><option value="2">Actively using</option></select>
+          </label>
+        </div>
+
+        <div class="grid three">
+          <label>Business documents
+            <select id="documents"><option value="0">Missing</option><option value="1">Partial</option><option value="2">Organized</option></select>
+          </label>
+          <label>Website / online presence
+            <select id="onlinePresence"><option value="0">None/weak</option><option value="1">Basic</option><option value="2">Strong</option></select>
+          </label>
+          <label>Growth plan
+            <select id="growthPlan"><option value="0">No plan</option><option value="1">Informal</option><option value="2">Documented</option></select>
+          </label>
+        </div>
+
+        <button type="submit" class="button primary wide">Generate Readiness Report</button>
+      </form>
+    </section>
+
+    <section class="section results hidden" id="results">
+      <div class="section-heading">
+        <p class="eyebrow">Step 2</p>
+        <h2>Dashboard Results</h2>
+        <p>Visual readiness scores with AI-style recommendations and next actions.</p>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="score-card">
+          <canvas id="overallChart"></canvas>
+          <h3 id="overallLabel">Overall Readiness</h3>
+          <p id="maturityLevel"></p>
+        </div>
+        <div class="score-card">
+          <h3>Readiness Breakdown</h3>
+          <div class="bar"><span>Cyber</span><div><i id="cyberBar"></i></div><b id="cyberScore"></b></div>
+          <div class="bar"><span>AI</span><div><i id="aiBar"></i></div><b id="aiScore"></b></div>
+          <div class="bar"><span>Funding</span><div><i id="fundingBar"></i></div><b id="fundingScore"></b></div>
+        </div>
+        <div class="score-card">
+          <h3>ROI Estimate</h3>
+          <p id="roiText"></p>
+          <p id="timeSavings"></p>
+          <p id="riskReduction"></p>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="panel">
+          <h3>AI Suggested Next Steps</h3>
+          <ul id="recommendations"></ul>
+        </div>
+        <div class="panel">
+          <h3>Industry-Specific Recommendations</h3>
+          <ul id="industryRecommendations"></ul>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div class="panel before">
+          <h3>Before</h3>
+          <ul id="beforeList"></ul>
+        </div>
+        <div class="panel after">
+          <h3>After</h3>
+          <ul id="afterList"></ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>30 / 60 / 90-Day Business Growth Roadmap</h3>
+        <div class="roadmap">
+          <div><strong>30 Days</strong><p id="road30"></p></div>
+          <div><strong>60 Days</strong><p id="road60"></p></div>
+          <div><strong>90 Days</strong><p id="road90"></p></div>
+        </div>
+      </div>
+
+
+      <div class="panel action-center">
+        <h3>Business Owner Action Center</h3>
+        <p class="muted">Turn the assessment into clear next steps, cost guidance, tool recommendations, documents, reassessment tracking, and a risk register.</p>
+
+        <div class="grid three">
+          <div class="mini-card">
+            <h4>Do This First</h4>
+            <ul id="doFirst"></ul>
+          </div>
+          <div class="mini-card">
+            <h4>Do This Next</h4>
+            <ul id="doNext"></ul>
+          </div>
+          <div class="mini-card">
+            <h4>Do This Later</h4>
+            <ul id="doLater"></ul>
+          </div>
+        </div>
+
+        <h4>Estimated Cost Level</h4>
+        <div class="cost-grid" id="costLevels"></div>
+
+        <h4>Tool Recommendations</h4>
+        <div class="tool-grid" id="toolRecommendations"></div>
+
+        <h4>Document Generator</h4>
+        <div class="doc-actions">
+          <button class="button secondary" onclick="generateDocument('cyber')">Cybersecurity Policy</button>
+          <button class="button secondary" onclick="generateDocument('ai')">AI Usage Policy</button>
+          <button class="button secondary" onclick="generateDocument('bcp')">Business Continuity Checklist</button>
+          <button class="button secondary" onclick="generateDocument('grant')">Grant Readiness Checklist</button>
+        </div>
+        <textarea id="generatedDocument" rows="10" readonly placeholder="Select a document to generate a business-ready template."></textarea>
+        <button class="button primary" onclick="downloadGeneratedDocument()">Download Generated Document</button>
+
+        <h4>Monthly Reassessment</h4>
+        <div class="reassessment">
+          <p id="baselineStatus">No baseline saved yet.</p>
+          <button class="button secondary" onclick="saveBaseline()">Save Baseline Score</button>
+          <button class="button secondary" onclick="compareBaseline()">Recheck Progress</button>
+        </div>
+
+        <h4>Business Risk Register</h4>
+        <div class="risk-table-wrap">
+          <table class="risk-table">
+            <thead>
+              <tr><th>Risk</th><th>Impact</th><th>Priority</th><th>Recommended Fix</th></tr>
+            </thead>
+            <tbody id="riskRegister"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div class="panel funding-prep">
+        <h3>Funding Readiness & Submission Prep Mode</h3>
+        <p class="muted">
+          This section helps entrepreneurs prepare stronger applications and business profiles before applying through funding platforms, marketplaces, or partner programs.
+        </p>
+
+        <div class="dashboard-grid">
+          <div class="score-card">
+            <h3 id="opportunityScoreLabel">Opportunity Preparedness</h3>
+            <div class="big-score" id="opportunityScore">0%</div>
+            <p id="opportunityScoreText"></p>
+          </div>
+          <div class="score-card">
+            <h3>Funding Readiness Checklist</h3>
+            <ul id="fundingChecklist"></ul>
+          </div>
+          <div class="score-card">
+            <h3>Readiness Gap Alerts</h3>
+            <ul id="gapAlerts"></ul>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="mini-card">
+            <h4>Application Answer Builder</h4>
+            <label>Choose a question
+              <select id="answerQuestion">
+                <option value="whatDoYouDo">What does your business do?</option>
+                <option value="customers">Who are your customers?</option>
+                <option value="problem">What problem do you solve?</option>
+                <option value="fundingUse">How would you use funding?</option>
+                <option value="impact">What impact will this create?</option>
+              </select>
+            </label>
+            <button class="button primary" onclick="buildApplicationAnswer()">Generate Answer</button>
+            <textarea id="applicationAnswer" rows="8" readonly placeholder="Generated answer will appear here."></textarea>
+            <button class="button secondary" onclick="downloadApplicationAnswer()">Download Answer</button>
+          </div>
+
+          <div class="mini-card">
+            <h4>Business Profile Builder</h4>
+            <p class="muted">Creates a clean one-page profile summary for funding, partnership, and marketplace readiness.</p>
+            <button class="button primary" onclick="buildBusinessProfile()">Generate Business Profile</button>
+            <textarea id="businessProfile" rows="12" readonly placeholder="Generated business profile will appear here."></textarea>
+            <button class="button secondary" onclick="downloadBusinessProfile()">Download Profile</button>
+          </div>
+        </div>
+
+        <div class="integration-note">
+          <strong>Integration-friendly positioning:</strong>
+          Use this report to prepare stronger applications and business profiles before applying through platforms like Skip. This tool does not replace funding marketplaces; it helps business owners become more prepared before they apply.
+        </div>
+      </div>
+
+
+      <div class="panel final-business-tools">
+        <h3>Final Small Business Growth Toolkit</h3>
+        <p class="muted">
+          These final tools help business owners move from assessment to execution without making the platform overly complex.
+        </p>
+
+        <div class="grid two">
+          <div class="mini-card">
+            <h4>Basic Compliance Checklist</h4>
+            <ul id="complianceChecklist"></ul>
+          </div>
+
+          <div class="mini-card">
+            <h4>Implementation Tracker</h4>
+            <div class="tracker-summary">
+              <strong id="trackerPercent">0%</strong>
+              <span>implementation progress</span>
+            </div>
+            <div id="implementationTracker"></div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="mini-card">
+            <h4>Customer Growth Planner</h4>
+            <ul id="growthPlanner"></ul>
+          </div>
+
+          <div class="mini-card">
+            <h4>Cash-Flow Snapshot</h4>
+            <div class="grid two">
+              <label>Monthly Revenue ($)
+                <input id="monthlyRevenue" type="number" min="0" value="5000" />
+              </label>
+              <label>Monthly Expenses ($)
+                <input id="monthlyExpenses" type="number" min="0" value="3500" />
+              </label>
+            </div>
+            <div class="grid two">
+              <label>Cash on Hand ($)
+                <input id="cashOnHand" type="number" min="0" value="8000" />
+              </label>
+              <label>Owner Goal / Reserve ($)
+                <input id="reserveGoal" type="number" min="0" value="10000" />
+              </label>
+            </div>
+            <button class="button primary" onclick="calculateCashFlow()">Calculate Cash Snapshot</button>
+            <div id="cashFlowResult" class="cash-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Executive Summary</h3>
+        <p id="executiveSummary"></p>
+        <div class="action-row">
+          <button class="button primary" onclick="window.print()">Print / Save as PDF</button>
+          <button class="button secondary" onclick="downloadReport()">Download Text Report</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Step 3</p>
+        <h2>Skip Grant Mode</h2>
+        <p>Grant-ready positioning generated for the application.</p>
+      </div>
+      <div class="panel">
+        <h3>What did you build?</h3>
+        <p>I built an AI-powered readiness advisor that helps entrepreneurs and small business owners understand their cybersecurity posture, AI adoption readiness, operational gaps, and growth opportunities. The tool generates readiness scores, practical recommendations, ROI estimates, and a 30/60/90-day roadmap that business owners can act on immediately.</p>
+
+        <h3>Problem solved</h3>
+        <p>Many small business owners cannot afford dedicated cybersecurity, AI, or operations consultants, yet they still need clear guidance to modernize, reduce risk, and grow. This tool turns complex technology and business readiness questions into a simple assessment with useful, actionable outputs.</p>
+
+        <h3>Why it can scale</h3>
+        <p>The platform can support restaurants, nonprofits, contractors, creators, consultants, online stores, retail shops, and service businesses through industry-specific recommendations and self-service reporting.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <strong>Champtron Systems LLC</strong>
+    <span>SmallBiz Cyber & AI Readiness Advisor — Static Demo Build</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
