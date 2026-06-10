@@ -230,4 +230,4 @@ Many small business owners cannot afford dedicated cybersecurity, AI, or operati
 
 ## License
 
-Prototype/demo prepared for Champtron Systems LLC. Update this section if you choose to release it publicly under MIT, Apache-2.0, or another license.
+Licensed under the [Apache License 2.0](LICENSE). Copyright 2026 Champtron Systems LLC.
