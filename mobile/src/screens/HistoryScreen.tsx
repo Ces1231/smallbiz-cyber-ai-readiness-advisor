@@ -14,13 +14,17 @@ export function HistoryScreen({ navigation }: any) {
   const [assessments, setAssessments] = useState<AssessmentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
+    setError(null);
     try {
       const data = await listAssessments(token);
       setAssessments(data);
-    } catch {}
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to load assessments. Please try again.');
+    }
   }, [token]);
 
   useEffect(() => {
@@ -37,6 +41,11 @@ export function HistoryScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.safe}>
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
       <FlatList
         data={assessments}
         keyExtractor={(item) => item.id}
@@ -79,4 +88,6 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 80, gap: 8 },
   emptyTitle: { color: colors.text, fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold },
   emptyDesc: { color: colors.muted, fontSize: typography.sizes.base, textAlign: 'center', paddingHorizontal: 32 },
+  errorBanner: { backgroundColor: 'rgba(251, 113, 133, 0.15)', borderBottomWidth: 1, borderBottomColor: colors.red, paddingHorizontal: 20, paddingVertical: 12 },
+  errorText: { color: colors.red, fontSize: typography.sizes.sm, textAlign: 'center' },
 });
