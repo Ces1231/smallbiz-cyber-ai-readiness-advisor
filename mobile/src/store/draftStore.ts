@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StartupAssessmentRequest } from '../api/startup';
 
 // ─── Assessment Draft ──────────────────────────────────────────────────────
@@ -80,23 +82,31 @@ interface DraftStore {
   clearStartupDraft: () => void;
 }
 
-export const useDraftStore = create<DraftStore>((set) => ({
-  assessmentDraft: { ...defaultAssessmentDraft },
-  startupDraft: { ...defaultStartupDraft },
+export const useDraftStore = create<DraftStore>()(
+  persist(
+    (set) => ({
+      assessmentDraft: { ...defaultAssessmentDraft },
+      startupDraft: { ...defaultStartupDraft },
 
-  setAssessmentDraftField: (field, value) =>
-    set((state) => ({
-      assessmentDraft: { ...state.assessmentDraft, [field]: value },
-    })),
+      setAssessmentDraftField: (field, value) =>
+        set((state) => ({
+          assessmentDraft: { ...state.assessmentDraft, [field]: value },
+        })),
 
-  clearAssessmentDraft: () =>
-    set({ assessmentDraft: { ...defaultAssessmentDraft } }),
+      clearAssessmentDraft: () =>
+        set({ assessmentDraft: { ...defaultAssessmentDraft } }),
 
-  setStartupDraftField: (field, value) =>
-    set((state) => ({
-      startupDraft: { ...state.startupDraft, [field]: value },
-    })),
+      setStartupDraftField: (field, value) =>
+        set((state) => ({
+          startupDraft: { ...state.startupDraft, [field]: value },
+        })),
 
-  clearStartupDraft: () =>
-    set({ startupDraft: { ...defaultStartupDraft } }),
-}));
+      clearStartupDraft: () =>
+        set({ startupDraft: { ...defaultStartupDraft } }),
+    }),
+    {
+      name: 'smallbiz-draft',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
