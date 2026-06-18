@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, SafeAreaView,
-  ScrollView, KeyboardAvoidingView, Platform,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
@@ -16,14 +24,19 @@ export function SignupScreen({ navigation, route }: Props) {
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signup, isLoading, error, clearError } = useAuthStore();
+  const { signup, isLoading, error, clearError, setPendingStartupRedirect } = useAuthStore();
+  const isStartup = route.params?.isStartup ?? false;
 
   async function handleSignup() {
     if (!businessName.trim() || !email.trim() || !password) return;
     try {
       clearError();
+      if (isStartup) {
+        setPendingStartupRedirect(true);
+      }
       await signup(email.trim(), password, businessName.trim());
     } catch {
+      setPendingStartupRedirect(false);
       // error in store
     }
   }
@@ -31,53 +44,55 @@ export function SignupScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.heading}>Create your account</Text>
-          <Text style={styles.sub}>Get your free readiness assessment</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+            <Text style={styles.heading}>Create your account</Text>
+            <Text style={styles.sub}>Get your free readiness assessment</Text>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <Text style={styles.label}>Business Name</Text>
-          <TextInput
-            style={styles.input}
-            value={businessName}
-            onChangeText={setBusinessName}
-            placeholder="Your Business LLC"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="words"
-          />
+            <Text style={styles.label}>Business Name</Text>
+            <TextInput
+              style={styles.input}
+              value={businessName}
+              onChangeText={setBusinessName}
+              placeholder="Your Business LLC"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+            />
 
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@business.com"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@business.com"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Min 8 characters"
-            placeholderTextColor={colors.muted}
-            secureTextEntry
-          />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Min 8 characters"
+              placeholderTextColor={colors.muted}
+              secureTextEntry
+            />
 
-          <View style={{ height: 8 }} />
-          <Button title="Create Account" onPress={handleSignup} loading={isLoading} />
+            <View style={{ height: 8 }} />
+            <Button title="Create Account" onPress={handleSignup} loading={isLoading} />
 
-          <Button
-            title="Already have an account? Sign in"
-            variant="ghost"
-            onPress={() => navigation.navigate('Login', { isStartup: route.params?.isStartup })}
-            style={{ marginTop: 12 }}
-          />
-        </ScrollView>
+            <Button
+              title="Already have an account? Sign in"
+              variant="ghost"
+              onPress={() => navigation.navigate('Login', { isStartup })}
+              style={{ marginTop: 12 }}
+            />
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

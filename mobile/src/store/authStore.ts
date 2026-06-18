@@ -11,6 +11,8 @@ interface AuthState {
   isPaid: boolean;
   isLoading: boolean;
   error: string | null;
+  /** Set to true when user authenticates via the "Starting a Business" path. */
+  pendingStartupRedirect: boolean;
 
   // Actions
   initialize: () => Promise<void>;
@@ -19,6 +21,7 @@ interface AuthState {
   logout: () => Promise<void>;
   setIsPaid: (paid: boolean) => void;
   clearError: () => void;
+  setPendingStartupRedirect: (val: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -28,6 +31,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isPaid: false,
   isLoading: false,
   error: null,
+  pendingStartupRedirect: false,
 
   initialize: async () => {
     try {
@@ -75,4 +79,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setIsPaid: (paid) => set({ isPaid: paid }),
 
   clearError: () => set({ error: null }),
+
+  setPendingStartupRedirect: (val) => set({ pendingStartupRedirect: val }),
 }));

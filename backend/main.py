@@ -48,10 +48,12 @@ def create_app() -> FastAPI:
     from backend.routers.auth import router as auth_router
     from backend.routers.assessments import router as assessments_router
     from backend.routers.baselines import router as baselines_router
+    from backend.routers.startup import router as startup_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(assessments_router, prefix="/assessments", tags=["assessments"])
     app.include_router(baselines_router, prefix="/baselines", tags=["baselines"])
+    app.include_router(startup_router, prefix="/startup", tags=["startup"])
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict:

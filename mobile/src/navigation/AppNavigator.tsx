@@ -11,6 +11,18 @@ import { FreeScoreScreen } from '../screens/FreeScoreScreen';
 import { UpgradeScreen } from '../screens/UpgradeScreen';
 import { ActionPlanScreen } from '../screens/ActionPlanScreen';
 import { AssessmentDetailScreen } from '../screens/AssessmentDetailScreen';
+// Startup path screens
+import { StartupStep1Screen } from '../screens/startup/StartupStep1Screen';
+import { StartupStep2Screen } from '../screens/startup/StartupStep2Screen';
+import { StartupStep3Screen } from '../screens/startup/StartupStep3Screen';
+import { StartupStep4Screen } from '../screens/startup/StartupStep4Screen';
+import { StartupStep5Screen } from '../screens/startup/StartupStep5Screen';
+import { StartupStep6Screen } from '../screens/startup/StartupStep6Screen';
+import { StartupStep7Screen } from '../screens/startup/StartupStep7Screen';
+import { StartupStep8Screen } from '../screens/startup/StartupStep8Screen';
+import { StartupStep9Screen } from '../screens/startup/StartupStep9Screen';
+import { StartupScoreScreen } from '../screens/startup/StartupScoreScreen';
+import { StartupLaunchPlanScreen } from '../screens/startup/StartupLaunchPlanScreen';
 
 // Tab navigator param list
 export type AppTabParamList = {
@@ -22,11 +34,24 @@ export type AppTabParamList = {
 // Root app stack param list (wraps tabs + modal/detail screens)
 export type AppStackParamList = {
   Tabs: undefined;
+  // Existing business path
   AssessmentForm: undefined;
   FreeScore: { assessmentId: string; assessment: any };
   Upgrade: undefined;
   ActionPlan: { assessmentId: string };
   AssessmentDetail: { id: string };
+  // Startup path
+  StartupStep1: undefined;
+  StartupStep2: undefined;
+  StartupStep3: undefined;
+  StartupStep4: undefined;
+  StartupStep5: undefined;
+  StartupStep6: undefined;
+  StartupStep7: undefined;
+  StartupStep8: undefined;
+  StartupStep9: undefined;
+  StartupScore: { assessment: any };
+  StartupLaunchPlan: { assessment: any };
 };
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
@@ -74,11 +99,24 @@ export function AppNavigator() {
       }}
     >
       <Stack.Screen name="Tabs" component={TabNavigator} />
+      {/* Existing business path */}
       <Stack.Screen name="AssessmentForm" component={AssessmentFormScreen} />
       <Stack.Screen name="FreeScore" component={FreeScoreScreen} />
       <Stack.Screen name="Upgrade" component={UpgradeScreen} />
       <Stack.Screen name="ActionPlan" component={ActionPlanScreen} />
       <Stack.Screen name="AssessmentDetail" component={AssessmentDetailScreen} />
+      {/* Startup path */}
+      <Stack.Screen name="StartupStep1" component={StartupStep1Screen} />
+      <Stack.Screen name="StartupStep2" component={StartupStep2Screen} />
+      <Stack.Screen name="StartupStep3" component={StartupStep3Screen} />
+      <Stack.Screen name="StartupStep4" component={StartupStep4Screen} />
+      <Stack.Screen name="StartupStep5" component={StartupStep5Screen} />
+      <Stack.Screen name="StartupStep6" component={StartupStep6Screen} />
+      <Stack.Screen name="StartupStep7" component={StartupStep7Screen} />
+      <Stack.Screen name="StartupStep8" component={StartupStep8Screen} />
+      <Stack.Screen name="StartupStep9" component={StartupStep9Screen} />
+      <Stack.Screen name="StartupScore" component={StartupScoreScreen} />
+      <Stack.Screen name="StartupLaunchPlan" component={StartupLaunchPlanScreen} />
     </Stack.Navigator>
   );
 }

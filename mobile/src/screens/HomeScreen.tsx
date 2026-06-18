@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator,
+  View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { listAssessments, AssessmentSummary } from '../api/assessments';
@@ -11,23 +11,52 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export function HomeScreen({ navigation }: any) {
-  const { user, token } = useAuthStore();
+  const { user, token, pendingStartupRedirect, setPendingStartupRedirect } = useAuthStore();
   const [lastAssessment, setLastAssessment] = useState<AssessmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
+  // Redirect to startup flow if user authenticated via "Starting a Business"
   useEffect(() => {
+    if (pendingStartupRedirect) {
+      setPendingStartupRedirect(false);
+      navigation.navigate('StartupStep1');
+    }
+  }, [pendingStartupRedirect]);
+
+  const fetchAssessments = useCallback(() => {
     if (!token) return;
-    listAssessments(token)
+    return listAssessments(token)
       .then((list) => {
         if (list.length > 0) setLastAssessment(list[0]);
+        else setLastAssessment(null);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [token]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchAssessments()?.finally(() => setLoading(false));
+  }, [fetchAssessments]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchAssessments()?.finally(() => setRefreshing(false));
+  }, [fetchAssessments]);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.cyan}
+            colors={[colors.cyan]}
+          />
+        }
+      >
         <Card style={styles.welcome}>
           <Text style={styles.greeting}>
             Hello, {user?.business_name ?? user?.email ?? 'there'}
@@ -60,6 +89,13 @@ export function HomeScreen({ navigation }: any) {
           onPress={() => navigation.navigate('AssessmentForm')}
           style={styles.cta}
         />
+
+        <Button
+          title="Starting a Business?"
+          variant="secondary"
+          onPress={() => navigation.navigate('StartupStep1')}
+          style={styles.startupBtn}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -79,4 +115,5 @@ const styles = StyleSheet.create({
   scoreLevel: { color: colors.cyan, fontSize: typography.sizes.sm },
   date: { color: colors.muted, fontSize: typography.sizes.sm, marginTop: 4 },
   cta: { marginTop: 8 },
+  startupBtn: { marginTop: 4 },
 });

@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, SafeAreaView,
-  ScrollView, KeyboardAvoidingView, Platform, Alert,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
@@ -15,7 +24,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export function LoginScreen({ navigation, route }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, error, clearError, setPendingStartupRedirect } = useAuthStore();
+  const isStartup = route.params?.isStartup ?? false;
 
   async function handleLogin() {
     if (!email.trim() || !password) {
@@ -24,9 +34,14 @@ export function LoginScreen({ navigation, route }: Props) {
     }
     try {
       clearError();
+      if (isStartup) {
+        setPendingStartupRedirect(true);
+      }
       await login(email.trim(), password);
-      // Navigation handled by RootNavigator on isLoggedIn change
+      // Navigation handled by RootNavigator on isLoggedIn change.
+      // pendingStartupRedirect flag is read by HomeScreen to redirect to StartupStep1.
     } catch {
+      setPendingStartupRedirect(false);
       // error set in store
     }
   }
@@ -37,45 +52,47 @@ export function LoginScreen({ navigation, route }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.heading}>Welcome back</Text>
-          <Text style={styles.sub}>Sign in to your SmallBiz Advisor account</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+            <Text style={styles.heading}>Welcome back</Text>
+            <Text style={styles.sub}>Sign in to your SmallBiz Advisor account</Text>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@business.com"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@business.com"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+            />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={colors.muted}
-            secureTextEntry
-            autoComplete="password"
-          />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={colors.muted}
+              secureTextEntry
+              autoComplete="password"
+            />
 
-          <View style={styles.gap} />
-          <Button title="Sign In" onPress={handleLogin} loading={isLoading} />
+            <View style={styles.gap} />
+            <Button title="Sign In" onPress={handleLogin} loading={isLoading} />
 
-          <Button
-            title="Don't have an account? Sign up"
-            variant="ghost"
-            onPress={() => navigation.navigate('Signup', { isStartup: route.params?.isStartup })}
-            style={styles.link}
-          />
-        </ScrollView>
+            <Button
+              title="Don't have an account? Sign up"
+              variant="ghost"
+              onPress={() => navigation.navigate('Signup', { isStartup })}
+              style={styles.link}
+            />
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
