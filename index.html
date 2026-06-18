@@ -135,9 +135,10 @@
       <div class="section-heading">
         <p class="eyebrow">Step 2</p>
         <h2>Dashboard Results</h2>
-        <p>Visual readiness scores with AI-style recommendations and next actions.</p>
+        <p>Your free readiness scores are ready. Unlock the full action plan to see exactly what to fix and in what order.</p>
       </div>
 
+      <!-- FREE TIER: scores, issue summary, before/after, exec summary -->
       <div class="dashboard-grid">
         <div class="score-card">
           <canvas id="overallChart"></canvas>
@@ -158,16 +159,7 @@
         </div>
       </div>
 
-      <div class="grid two">
-        <div class="panel">
-          <h3>AI Suggested Next Steps</h3>
-          <ul id="recommendations"></ul>
-        </div>
-        <div class="panel">
-          <h3>Industry-Specific Recommendations</h3>
-          <ul id="industryRecommendations"></ul>
-        </div>
-      </div>
+      <div id="freeIssueSummary"></div>
 
       <div class="grid two">
         <div class="panel before">
@@ -181,182 +173,199 @@
       </div>
 
       <div class="panel">
-        <h3>30 / 60 / 90-Day Business Growth Roadmap</h3>
-        <div class="roadmap">
-          <div><strong>30 Days</strong><p id="road30"></p></div>
-          <div><strong>60 Days</strong><p id="road60"></p></div>
-          <div><strong>90 Days</strong><p id="road90"></p></div>
-        </div>
-      </div>
-
-
-      <div class="panel action-center">
-        <h3>Business Owner Action Center</h3>
-        <p class="muted">Turn the assessment into clear next steps, cost guidance, tool recommendations, documents, reassessment tracking, and a risk register.</p>
-
-        <div class="grid three">
-          <div class="mini-card">
-            <h4>Do This First</h4>
-            <ul id="doFirst"></ul>
-          </div>
-          <div class="mini-card">
-            <h4>Do This Next</h4>
-            <ul id="doNext"></ul>
-          </div>
-          <div class="mini-card">
-            <h4>Do This Later</h4>
-            <ul id="doLater"></ul>
-          </div>
-        </div>
-
-        <h4>Estimated Cost Level</h4>
-        <div class="cost-grid" id="costLevels"></div>
-
-        <h4>Tool Recommendations</h4>
-        <div class="tool-grid" id="toolRecommendations"></div>
-
-        <h4>Document Generator</h4>
-        <div class="doc-actions">
-          <button class="button secondary" onclick="generateDocument('cyber')">Cybersecurity Policy</button>
-          <button class="button secondary" onclick="generateDocument('ai')">AI Usage Policy</button>
-          <button class="button secondary" onclick="generateDocument('bcp')">Business Continuity Checklist</button>
-          <button class="button secondary" onclick="generateDocument('grant')">Grant Readiness Checklist</button>
-        </div>
-        <textarea id="generatedDocument" rows="10" readonly placeholder="Select a document to generate a business-ready template."></textarea>
-        <button class="button primary" onclick="downloadGeneratedDocument()">Download Generated Document</button>
-
-        <h4>Monthly Reassessment</h4>
-        <div class="reassessment">
-          <p id="baselineStatus">No baseline saved yet.</p>
-          <button class="button secondary" onclick="saveBaseline()">Save Baseline Score</button>
-          <button class="button secondary" onclick="compareBaseline()">Recheck Progress</button>
-        </div>
-
-        <h4>Business Risk Register</h4>
-        <div class="risk-table-wrap">
-          <table class="risk-table">
-            <thead>
-              <tr><th>Risk</th><th>Impact</th><th>Priority</th><th>Recommended Fix</th></tr>
-            </thead>
-            <tbody id="riskRegister"></tbody>
-          </table>
-        </div>
-      </div>
-
-
-      <div class="panel funding-prep">
-        <h3>Funding Readiness & Submission Prep Mode</h3>
-        <p class="muted">
-          This section helps entrepreneurs prepare stronger applications and business profiles before applying through funding platforms, marketplaces, or partner programs.
-        </p>
-
-        <div class="dashboard-grid">
-          <div class="score-card">
-            <h3 id="opportunityScoreLabel">Opportunity Preparedness</h3>
-            <div class="big-score" id="opportunityScore">0%</div>
-            <p id="opportunityScoreText"></p>
-          </div>
-          <div class="score-card">
-            <h3>Funding Readiness Checklist</h3>
-            <ul id="fundingChecklist"></ul>
-          </div>
-          <div class="score-card">
-            <h3>Readiness Gap Alerts</h3>
-            <ul id="gapAlerts"></ul>
-          </div>
-        </div>
-
-        <div class="grid two">
-          <div class="mini-card">
-            <h4>Application Answer Builder</h4>
-            <label>Choose a question
-              <select id="answerQuestion">
-                <option value="whatDoYouDo">What does your business do?</option>
-                <option value="customers">Who are your customers?</option>
-                <option value="problem">What problem do you solve?</option>
-                <option value="fundingUse">How would you use funding?</option>
-                <option value="impact">What impact will this create?</option>
-              </select>
-            </label>
-            <button class="button primary" onclick="buildApplicationAnswer()">Generate Answer</button>
-            <textarea id="applicationAnswer" rows="8" readonly placeholder="Generated answer will appear here."></textarea>
-            <button class="button secondary" onclick="downloadApplicationAnswer()">Download Answer</button>
-          </div>
-
-          <div class="mini-card">
-            <h4>Business Profile Builder</h4>
-            <p class="muted">Creates a clean one-page profile summary for funding, partnership, and marketplace readiness.</p>
-            <button class="button primary" onclick="buildBusinessProfile()">Generate Business Profile</button>
-            <textarea id="businessProfile" rows="12" readonly placeholder="Generated business profile will appear here."></textarea>
-            <button class="button secondary" onclick="downloadBusinessProfile()">Download Profile</button>
-          </div>
-        </div>
-
-        <div class="integration-note">
-          <strong>Integration-friendly positioning:</strong>
-          Use this report to prepare stronger applications and business profiles before applying through platforms like Skip. This tool does not replace funding marketplaces; it helps business owners become more prepared before they apply.
-        </div>
-      </div>
-
-
-      <div class="panel final-business-tools">
-        <h3>Final Small Business Growth Toolkit</h3>
-        <p class="muted">
-          These final tools help business owners move from assessment to execution without making the platform overly complex.
-        </p>
-
-        <div class="grid two">
-          <div class="mini-card">
-            <h4>Basic Compliance Checklist</h4>
-            <ul id="complianceChecklist"></ul>
-          </div>
-
-          <div class="mini-card">
-            <h4>Implementation Tracker</h4>
-            <div class="tracker-summary">
-              <strong id="trackerPercent">0%</strong>
-              <span>implementation progress</span>
-            </div>
-            <div id="implementationTracker"></div>
-          </div>
-        </div>
-
-        <div class="grid two">
-          <div class="mini-card">
-            <h4>Customer Growth Planner</h4>
-            <ul id="growthPlanner"></ul>
-          </div>
-
-          <div class="mini-card">
-            <h4>Cash-Flow Snapshot</h4>
-            <div class="grid two">
-              <label>Monthly Revenue ($)
-                <input id="monthlyRevenue" type="number" min="0" value="5000" />
-              </label>
-              <label>Monthly Expenses ($)
-                <input id="monthlyExpenses" type="number" min="0" value="3500" />
-              </label>
-            </div>
-            <div class="grid two">
-              <label>Cash on Hand ($)
-                <input id="cashOnHand" type="number" min="0" value="8000" />
-              </label>
-              <label>Owner Goal / Reserve ($)
-                <input id="reserveGoal" type="number" min="0" value="10000" />
-              </label>
-            </div>
-            <button class="button primary" onclick="calculateCashFlow()">Calculate Cash Snapshot</button>
-            <div id="cashFlowResult" class="cash-result"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
         <h3>Executive Summary</h3>
         <p id="executiveSummary"></p>
-        <div class="action-row">
-          <button class="button primary" onclick="window.print()">Print / Save as PDF</button>
-          <button class="button secondary" onclick="downloadReport()">Download Text Report</button>
+      </div>
+
+      <!-- UPGRADE WALL (shown when not paid) -->
+      <div id="upgradeWall" class="hidden"></div>
+
+      <!-- PAID CONTENT (hidden until unlocked) -->
+      <div id="paidContent" class="hidden">
+        <div class="grid two">
+          <div class="panel">
+            <h3>AI Suggested Next Steps</h3>
+            <ul id="recommendations"></ul>
+          </div>
+          <div class="panel">
+            <h3>Industry-Specific Recommendations</h3>
+            <ul id="industryRecommendations"></ul>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>30 / 60 / 90-Day Business Growth Roadmap</h3>
+          <div class="roadmap">
+            <div><strong>30 Days</strong><p id="road30"></p></div>
+            <div><strong>60 Days</strong><p id="road60"></p></div>
+            <div><strong>90 Days</strong><p id="road90"></p></div>
+          </div>
+        </div>
+
+        <div class="panel action-center">
+          <h3>Business Owner Action Center</h3>
+          <p class="muted">Turn the assessment into clear next steps, cost guidance, tool recommendations, documents, reassessment tracking, and a risk register.</p>
+
+          <div class="grid three">
+            <div class="mini-card">
+              <h4>Do This First</h4>
+              <ul id="doFirst"></ul>
+            </div>
+            <div class="mini-card">
+              <h4>Do This Next</h4>
+              <ul id="doNext"></ul>
+            </div>
+            <div class="mini-card">
+              <h4>Do This Later</h4>
+              <ul id="doLater"></ul>
+            </div>
+          </div>
+
+          <h4>Estimated Cost Level</h4>
+          <div class="cost-grid" id="costLevels"></div>
+
+          <h4>Tool Recommendations</h4>
+          <div class="tool-grid" id="toolRecommendations"></div>
+
+          <h4>Document Generator</h4>
+          <div class="doc-actions">
+            <button class="button secondary" onclick="generateDocument('cyber')">Cybersecurity Policy</button>
+            <button class="button secondary" onclick="generateDocument('ai')">AI Usage Policy</button>
+            <button class="button secondary" onclick="generateDocument('bcp')">Business Continuity Checklist</button>
+            <button class="button secondary" onclick="generateDocument('grant')">Grant Readiness Checklist</button>
+          </div>
+          <textarea id="generatedDocument" rows="10" readonly placeholder="Select a document to generate a business-ready template."></textarea>
+          <button class="button primary" onclick="downloadGeneratedDocument()">Download Generated Document</button>
+
+          <h4>Monthly Reassessment</h4>
+          <div class="reassessment">
+            <p id="baselineStatus">No baseline saved yet.</p>
+            <button class="button secondary" onclick="saveBaseline()">Save Baseline Score</button>
+            <button class="button secondary" onclick="compareBaseline()">Recheck Progress</button>
+          </div>
+
+          <h4>Business Risk Register</h4>
+          <div class="risk-table-wrap">
+            <table class="risk-table">
+              <thead>
+                <tr><th>Risk</th><th>Impact</th><th>Priority</th><th>Recommended Fix</th></tr>
+              </thead>
+              <tbody id="riskRegister"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel funding-prep">
+          <h3>Funding Readiness & Submission Prep Mode</h3>
+          <p class="muted">
+            This section helps entrepreneurs prepare stronger applications and business profiles before applying through funding platforms, marketplaces, or partner programs.
+          </p>
+
+          <div class="dashboard-grid">
+            <div class="score-card">
+              <h3 id="opportunityScoreLabel">Opportunity Preparedness</h3>
+              <div class="big-score" id="opportunityScore">0%</div>
+              <p id="opportunityScoreText"></p>
+            </div>
+            <div class="score-card">
+              <h3>Funding Readiness Checklist</h3>
+              <ul id="fundingChecklist"></ul>
+            </div>
+            <div class="score-card">
+              <h3>Readiness Gap Alerts</h3>
+              <ul id="gapAlerts"></ul>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <div class="mini-card">
+              <h4>Application Answer Builder</h4>
+              <label>Choose a question
+                <select id="answerQuestion">
+                  <option value="whatDoYouDo">What does your business do?</option>
+                  <option value="customers">Who are your customers?</option>
+                  <option value="problem">What problem do you solve?</option>
+                  <option value="fundingUse">How would you use funding?</option>
+                  <option value="impact">What impact will this create?</option>
+                </select>
+              </label>
+              <button class="button primary" onclick="buildApplicationAnswer()">Generate Answer</button>
+              <textarea id="applicationAnswer" rows="8" readonly placeholder="Generated answer will appear here."></textarea>
+              <button class="button secondary" onclick="downloadApplicationAnswer()">Download Answer</button>
+            </div>
+
+            <div class="mini-card">
+              <h4>Business Profile Builder</h4>
+              <p class="muted">Creates a clean one-page profile summary for funding, partnership, and marketplace readiness.</p>
+              <button class="button primary" onclick="buildBusinessProfile()">Generate Business Profile</button>
+              <textarea id="businessProfile" rows="12" readonly placeholder="Generated business profile will appear here."></textarea>
+              <button class="button secondary" onclick="downloadBusinessProfile()">Download Profile</button>
+            </div>
+          </div>
+
+          <div class="integration-note">
+            <strong>Integration-friendly positioning:</strong>
+            Use this report to prepare stronger applications and business profiles before applying through platforms like Skip. This tool does not replace funding marketplaces; it helps business owners become more prepared before they apply.
+          </div>
+        </div>
+
+        <div class="panel final-business-tools">
+          <h3>Final Small Business Growth Toolkit</h3>
+          <p class="muted">
+            These final tools help business owners move from assessment to execution without making the platform overly complex.
+          </p>
+
+          <div class="grid two">
+            <div class="mini-card">
+              <h4>Basic Compliance Checklist</h4>
+              <ul id="complianceChecklist"></ul>
+            </div>
+
+            <div class="mini-card">
+              <h4>Implementation Tracker</h4>
+              <div class="tracker-summary">
+                <strong id="trackerPercent">0%</strong>
+                <span>implementation progress</span>
+              </div>
+              <div id="implementationTracker"></div>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <div class="mini-card">
+              <h4>Customer Growth Planner</h4>
+              <ul id="growthPlanner"></ul>
+            </div>
+
+            <div class="mini-card">
+              <h4>Cash-Flow Snapshot</h4>
+              <div class="grid two">
+                <label>Monthly Revenue ($)
+                  <input id="monthlyRevenue" type="number" min="0" value="5000" />
+                </label>
+                <label>Monthly Expenses ($)
+                  <input id="monthlyExpenses" type="number" min="0" value="3500" />
+                </label>
+              </div>
+              <div class="grid two">
+                <label>Cash on Hand ($)
+                  <input id="cashOnHand" type="number" min="0" value="8000" />
+                </label>
+                <label>Owner Goal / Reserve ($)
+                  <input id="reserveGoal" type="number" min="0" value="10000" />
+                </label>
+              </div>
+              <button class="button primary" onclick="calculateCashFlow()">Calculate Cash Snapshot</button>
+              <div id="cashFlowResult" class="cash-result"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="action-row">
+            <button class="button primary" onclick="window.print()">Print / Save as PDF</button>
+            <button class="button secondary" onclick="downloadReport()">Download Full Report</button>
+          </div>
         </div>
       </div>
     </section>

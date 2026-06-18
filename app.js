@@ -41,6 +41,15 @@ let latestReport = "";
 let latestData = null;
 let latestScores = null;
 let currentGeneratedDocument = "";
+let isPaid = false;
+
+window.unlockDemo = function() {
+  isPaid = true;
+  document.getElementById('upgradeWall').classList.add('hidden');
+  const paid = document.getElementById('paidContent');
+  paid.classList.remove('hidden');
+  paid.scrollIntoView({ behavior: 'smooth' });
+};
 
 function setValue(id, val){ document.getElementById(id).value = val; }
 
@@ -132,6 +141,7 @@ function renderResults(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall
   renderActionCenter(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
   renderFundingPrep(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
   renderFinalBusinessTools(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
+  setupPaywall(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
 
   executiveSummary.textContent = `${data.businessName} completed a readiness assessment for cybersecurity, AI adoption, and funding preparedness. The business scored ${overall}% overall, with ${cyberScoreVal}% cyber readiness, ${aiScoreVal}% AI readiness, and ${fundingScoreVal}% funding readiness. The assessment identified practical opportunities to reduce risk, improve efficiency, and create a structured roadmap for growth.`;
 
@@ -664,5 +674,111 @@ function calculateCashFlow(){
     <p><strong>Estimated Runway:</strong> ${runway.toFixed(1)} months</p>
     <p><strong>Status:</strong> <span class="${cls}">${label}</span></p>
     <p>${guidance}</p>
+  `;
+}
+
+
+function setupPaywall(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall) {
+  renderIssueSummary(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
+  if (isPaid) {
+    document.getElementById('paidContent').classList.remove('hidden');
+    document.getElementById('upgradeWall').classList.add('hidden');
+  } else {
+    document.getElementById('paidContent').classList.add('hidden');
+    renderUpgradeWall(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
+    document.getElementById('upgradeWall').classList.remove('hidden');
+  }
+}
+
+function renderIssueSummary(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall) {
+  const categories = [
+    { label: 'Cyber', score: cyberScoreVal },
+    { label: 'AI', score: aiScoreVal },
+    { label: 'Funding', score: fundingScoreVal }
+  ];
+  let highCount = 0, mediumCount = 0, goodCount = 0;
+  categories.forEach(c => {
+    if (c.score < 50) highCount++;
+    else if (c.score < 75) mediumCount++;
+    else goodCount++;
+  });
+  const actionCount = highCount * 3 + mediumCount * 2 + 1;
+
+  const badges = [
+    highCount > 0 ? `<span class="risk-badge badge-high">${highCount} High Priority</span>` : '',
+    mediumCount > 0 ? `<span class="risk-badge badge-medium">${mediumCount} Moderate</span>` : '',
+    goodCount > 0 ? `<span class="risk-badge badge-good">${goodCount} Good Standing</span>` : ''
+  ].filter(Boolean).join('');
+
+  document.getElementById('freeIssueSummary').innerHTML = `
+    <div class="panel" style="margin-bottom:18px">
+      <div class="issue-summary-header">
+        <div>
+          <p class="eyebrow">Free Assessment Summary</p>
+          <h3 style="margin:6px 0">Your Readiness Snapshot</h3>
+          <div class="issue-badges">${badges}</div>
+        </div>
+        <div style="text-align:right">
+          <p class="eyebrow" style="margin-bottom:4px">Overall Score</p>
+          <div class="overall-pill">${overall}%</div>
+          <p class="muted" style="font-size:13px;margin-top:6px">${level(overall)}</p>
+        </div>
+      </div>
+      <p class="muted">Your assessment identified <strong style="color:var(--cyan)">${actionCount} priority items</strong> across cybersecurity, AI readiness, and funding preparedness. Unlock the full action plan to see exactly what to fix and in what order.</p>
+    </div>
+  `;
+}
+
+function renderUpgradeWall(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall) {
+  const categories = [
+    { label: 'Cyber', score: cyberScoreVal },
+    { label: 'AI', score: aiScoreVal },
+    { label: 'Funding', score: fundingScoreVal }
+  ];
+  let highCount = 0, mediumCount = 0;
+  categories.forEach(c => {
+    if (c.score < 50) highCount++;
+    else if (c.score < 75) mediumCount++;
+  });
+  const actionCount = highCount * 3 + mediumCount * 2 + 1;
+  const riskLevel = risk(Math.min(cyberScoreVal, aiScoreVal, fundingScoreVal));
+
+  document.getElementById('upgradeWall').innerHTML = `
+    <div class="panel upgrade-wall">
+      <div class="upgrade-wall-inner">
+        <div>
+          <p class="eyebrow">Action Plan — Paid Feature</p>
+          <h3 style="margin:8px 0 4px">Get Your Full Roadmap to Green</h3>
+          <p class="muted" style="margin-bottom:16px">Your free score shows where you stand. The action plan tells you exactly what to fix, in what order — with step-by-step guidance tailored to ${data.businessName || 'your business'}.</p>
+          <div class="issue-count">${actionCount}</div>
+          <p class="muted" style="margin-top:0;font-size:14px">prioritized action items identified (${riskLevel} risk)</p>
+          <ul class="plan-feature-list">
+            <li>Step-by-step fix list in priority order</li>
+            <li>30/60/90-day implementation roadmap</li>
+            <li>Document & policy generator</li>
+            <li>Funding readiness submission prep</li>
+            <li>Business risk register</li>
+            <li>Printable PDF report</li>
+          </ul>
+          <div class="wall-actions">
+            <button class="button primary" onclick="alert('Billing coming soon — contact us at champtron.com')">Unlock Action Plan</button>
+            <a href="#" class="button secondary" onclick="window.unlockDemo();return false;">Preview Full Report →</a>
+          </div>
+        </div>
+        <div>
+          <p class="muted" style="font-size:13px;margin-bottom:10px">Preview of your locked action items:</p>
+          <div class="locked-preview">
+            <div class="locked-item"></div>
+            <div class="locked-item med"></div>
+            <div class="locked-item short"></div>
+            <div class="locked-item"></div>
+            <div class="locked-item med"></div>
+            <div class="locked-item short"></div>
+            <div class="locked-item"></div>
+          </div>
+          <p class="preview-label">Unlock to see your full prioritized action plan</p>
+        </div>
+      </div>
+    </div>
   `;
 }

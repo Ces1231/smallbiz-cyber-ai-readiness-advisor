@@ -32,20 +32,10 @@ async def get_my_baseline(
             supabase.table("baselines")
             .select("*")
             .eq("user_id", user_id)
-            .single()
+            .limit(1)
             .execute()
         )
     except Exception as exc:
-        err_str = str(exc).lower()
-        if "no rows" in err_str or "not found" in err_str:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    "error": "baseline_not_found",
-                    "message": "No baseline saved yet.",
-                    "details": {},
-                },
-            )
         log.error("baselines_get_db_error", error=str(exc), user_id=user_id)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -56,7 +46,7 @@ async def get_my_baseline(
             },
         )
 
-    if not result.data:
+    if not result or not result.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
@@ -66,7 +56,7 @@ async def get_my_baseline(
             },
         )
 
-    return BaselineResponse(**result.data)
+    return BaselineResponse(**result.data[0])
 
 
 @router.post("", response_model=BaselineSaveResponse, status_code=200)
@@ -86,20 +76,10 @@ async def save_baseline(
             .select("id,business_name,cyber_score,ai_score,funding_score,overall_score")
             .eq("id", assessment_id)
             .eq("user_id", user_id)
-            .single()
+            .limit(1)
             .execute()
         )
     except Exception as exc:
-        err_str = str(exc).lower()
-        if "no rows" in err_str or "not found" in err_str:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail={
-                    "error": "assessment_not_found",
-                    "message": "Assessment not found.",
-                    "details": {},
-                },
-            )
         log.error("baselines_save_lookup_error", error=str(exc), user_id=user_id)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -110,7 +90,7 @@ async def save_baseline(
             },
         )
 
-    if not asmnt_result.data:
+    if not asmnt_result or not asmnt_result.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={
@@ -120,7 +100,7 @@ async def save_baseline(
             },
         )
 
-    asmnt = asmnt_result.data
+    asmnt = asmnt_result.data[0]
 
     # Upsert — one baseline per user (UNIQUE constraint on user_id)
     record = {

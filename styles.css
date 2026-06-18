@@ -112,3 +112,27 @@ footer{padding:28px 6vw;border-top:1px solid var(--border);display:flex;justify-
   box-shadow:0 2px 8px rgba(0,0,0,.3);
   background:#000;
 }
+
+
+/* ── Freemium tier styles ── */
+.issue-summary-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:16px}
+.overall-pill{font-size:38px;font-weight:950;color:var(--cyan);line-height:1}
+.issue-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.risk-badge{padding:7px 14px;border-radius:999px;font-weight:800;font-size:13px;border:1px solid}
+.badge-high{background:rgba(251,113,133,.15);border-color:rgba(251,113,133,.4);color:var(--red)}
+.badge-medium{background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.3);color:var(--yellow)}
+.badge-good{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:var(--green)}
+
+.upgrade-wall{border-color:rgba(34,211,238,.35)!important;background:linear-gradient(160deg,rgba(18,36,59,.98),rgba(10,22,38,.98))!important;margin:18px 0}
+.upgrade-wall-inner{display:grid;grid-template-columns:1.25fr .75fr;gap:40px;align-items:center}
+.issue-count{font-size:48px;font-weight:950;color:var(--cyan);line-height:1;margin:8px 0}
+.plan-feature-list{list-style:none;padding:0;margin:14px 0}
+.plan-feature-list li{padding:7px 0;color:#dcecff;font-size:15px}
+.plan-feature-list li::before{content:'✓ ';color:var(--green);font-weight:900}
+.locked-preview{display:flex;flex-direction:column;gap:10px}
+.locked-item{height:13px;background:rgba(255,255,255,.1);border-radius:8px;width:100%}
+.locked-item.short{max-width:65%}
+.locked-item.med{max-width:82%}
+.preview-label{font-size:12px;color:var(--muted);margin-top:4px}
+.wall-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+@media(max-width:900px){.upgrade-wall-inner{grid-template-columns:1fr}}
