@@ -15,3 +15,23 @@ Thumbs.db
 
 # Local-only files (never committed)
 local/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Backend secrets (never commit)
+backend/.env
+
+# Pipeline artifacts (runtime only)
+.claude/autopilot/
+.claude/friday/
+.claude/hawkeye/
+.claude/vision/
