@@ -136,3 +136,31 @@ footer{padding:28px 6vw;border-top:1px solid var(--border);display:flex;justify-
 .preview-label{font-size:12px;color:var(--muted);margin-top:4px}
 .wall-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
 @media(max-width:900px){.upgrade-wall-inner{grid-template-columns:1fr}}
+
+/* ── Auth UI (SPRINT-001) ────────────────────────────────────────────────── */
+#authControls{display:flex;gap:8px;align-items:center}
+#userMenu{display:flex;gap:10px;align-items:center}
+.modal-overlay{position:fixed;inset:0;background:rgba(7,17,31,.85);z-index:9999;display:flex;align-items:center;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:36px;max-width:420px;width:100%;position:relative}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-card h3{margin:0 0 20px;font-size:20px;color:#fff}
+.modal-card form{display:flex;flex-direction:column;gap:14px}
+.modal-card label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.modal-card input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;font-size:15px;outline:none}
+.modal-card input:focus{border-color:var(--cyan)}
+.button.wide{width:100%}
+.error-text{color:#f87171;font-size:13px;margin:0}
+.error-text.hidden{display:none}
+.switch-link{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0}
+.switch-link a{color:var(--cyan);text-decoration:none}
+
+/* ── Assessment History (SPRINT-001) ─────────────────────────────────────── */
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.history-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px;cursor:pointer;transition:border-color .2s}
+.history-card:hover{border-color:var(--cyan)}
+.history-card strong{display:block;color:#fff;font-size:15px;margin-bottom:4px}
+.history-scores{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0;color:var(--muted);font-size:13px}
+.maturity-pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;background:rgba(34,211,238,.15);color:var(--cyan)}
+.pagination-row{display:flex;gap:10px;justify-content:center;margin-top:18px}

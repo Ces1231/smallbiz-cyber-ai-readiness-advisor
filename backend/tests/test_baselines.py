@@ -27,22 +27,23 @@ def _make_baseline_row(**overrides):
 
 
 def _make_assessment_row():
-    return {
+    return [{
         "id": ASSESSMENT_ID,
         "business_name": "Bright Path Café",
         "cyber_score": 33,
         "ai_score": 17,
         "funding_score": 50,
         "overall_score": 33,
-    }
+    }]
 
 
 def test_get_baseline_not_set(authed_client, mock_supabase):
     """GET /baselines/me returns 404 when no baseline is set."""
-    mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.side_effect = Exception("no rows")
+    empty_result = MagicMock()
+    empty_result.data = []
+    mock_supabase.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = empty_result
     response = authed_client.get("/baselines/me")
     assert response.status_code == 404
-    mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.side_effect = None
 
 
 def test_save_baseline_success(authed_client, mock_supabase):
@@ -57,11 +58,10 @@ def test_save_baseline_success(authed_client, mock_supabase):
     upsert_result.data = [baseline_row]
 
     # Wire mocks: first call (assessments lookup), second call (baselines upsert)
-    call_count = [0]
     def table_side_effect(name):
         m = MagicMock()
         if name == "assessments":
-            m.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value = asmnt_result
+            m.select.return_value.eq.return_value.eq.return_value.limit.return_value.execute.return_value = asmnt_result
         elif name == "baselines":
             m.upsert.return_value.execute.return_value = upsert_result
         return m
@@ -88,7 +88,7 @@ def test_save_baseline_overwrites_previous(authed_client, mock_supabase):
     def table_side_effect(name):
         m = MagicMock()
         if name == "assessments":
-            m.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value = asmnt_result
+            m.select.return_value.eq.return_value.eq.return_value.limit.return_value.execute.return_value = asmnt_result
         elif name == "baselines":
             m.upsert.return_value.execute.return_value = upsert_result
         return m
@@ -111,7 +111,9 @@ def test_save_baseline_cross_user_assessment(authed_client, mock_supabase):
     def table_side_effect(name):
         m = MagicMock()
         if name == "assessments":
-            m.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.side_effect = Exception("no rows")
+            empty = MagicMock()
+            empty.data = []
+            m.select.return_value.eq.return_value.eq.return_value.limit.return_value.execute.return_value = empty
         return m
 
     mock_supabase.table.side_effect = table_side_effect
@@ -138,7 +140,8 @@ def test_delete_baseline(authed_client, mock_supabase):
     mock_supabase.table.side_effect = None
 
     # GET after delete should return 404
-    mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.side_effect = Exception("no rows")
+    empty_result = MagicMock()
+    empty_result.data = []
+    mock_supabase.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = empty_result
     r2 = authed_client.get("/baselines/me")
     assert r2.status_code == 404
-    mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.side_effect = None

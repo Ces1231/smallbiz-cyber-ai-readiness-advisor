@@ -201,6 +201,11 @@ ${Array.from(document.querySelectorAll("#growthPlanner li")).map(x=>"- "+x.textC
 Built by Champtron Systems LLC.`;
 
   document.getElementById("results").scrollIntoView({behavior:"smooth"});
+
+  // Cloud save hook — only when logged in; anonymous users run normally
+  if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+    saveAssessmentToCloud(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
+  }
 }
 
 function downloadReport(){
@@ -397,11 +402,21 @@ function downloadGeneratedDocument(){
   URL.revokeObjectURL(url);
 }
 
-function saveBaseline(){
+async function saveBaseline(){
   if(!latestScores){
     alert("Run the assessment first, then save the baseline.");
     return;
   }
+  if (typeof Auth !== 'undefined' && Auth.isLoggedIn() && window._lastSavedAssessmentId) {
+    try {
+      await ApiClient.post('/baselines', { assessment_id: window._lastSavedAssessmentId });
+      updateBaselineStatus();
+      return;
+    } catch (err) {
+      console.warn('Cloud baseline save failed, falling back to localStorage:', err);
+    }
+  }
+  // Fallback: original localStorage behavior
   const record = {
     date: new Date().toISOString(),
     businessName: getBusinessName(),
@@ -411,14 +426,28 @@ function saveBaseline(){
   updateBaselineStatus();
 }
 
-function compareBaseline(){
+async function compareBaseline(){
+  if(!latestScores){
+    alert("Run the assessment again before comparing progress.");
+    return;
+  }
+  if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
+    try {
+      const baseline = await ApiClient.get('/baselines/me');
+      const diff = latestScores.overall - baseline.overall_score;
+      const word = diff >= 0 ? "improved" : "decreased";
+      document.getElementById("baselineStatus").textContent =
+        `Cloud baseline: ${baseline.overall_score}% saved for ${baseline.business_name} on ${new Date(baseline.saved_at).toLocaleDateString()}. ` +
+        `Current: ${latestScores.overall}%. Overall readiness ${word} by ${Math.abs(diff)} points.`;
+      return;
+    } catch (err) {
+      if (err.status !== 404) console.warn('Could not load cloud baseline:', err);
+    }
+  }
+  // Fallback: original localStorage behavior
   const raw = localStorage.getItem("smallbizAdvisorBaseline");
   if(!raw){
     alert("No baseline saved yet.");
-    return;
-  }
-  if(!latestScores){
-    alert("Run the assessment again before comparing progress.");
     return;
   }
   const baseline = JSON.parse(raw);
@@ -781,4 +810,123 @@ function renderUpgradeWall(data, cyberScoreVal, aiScoreVal, fundingScoreVal, ove
       </div>
     </div>
   `;
+}
+
+// ── Cloud persistence helpers (SPRINT-001) ────────────────────────────────────
+
+async function saveAssessmentToCloud(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall) {
+  try {
+    const result = await ApiClient.post('/assessments', {
+      business_name: data.businessName,
+      industry: data.industry,
+      challenge: data.challenge || null,
+      inputs: {
+        mfa: Number(document.getElementById('mfa')?.value ?? 0),
+        backups: Number(document.getElementById('backups')?.value ?? 0),
+        training: Number(document.getElementById('training')?.value ?? 0),
+        digital_tools: Number(document.getElementById('digitalTools')?.value ?? 0),
+        automation: Number(document.getElementById('automation')?.value ?? 0),
+        ai_usage: Number(document.getElementById('aiUsage')?.value ?? 0),
+        documents: Number(document.getElementById('documents')?.value ?? 0),
+        online_presence: Number(document.getElementById('onlinePresence')?.value ?? 0),
+        growth_plan: Number(document.getElementById('growthPlan')?.value ?? 0),
+      },
+      scores: {
+        cyber_score: cyberScoreVal,
+        ai_score: aiScoreVal,
+        funding_score: fundingScoreVal,
+        overall_score: overall,
+      },
+    });
+    window._lastSavedAssessmentId = result.id;
+  } catch (err) {
+    console.warn('Assessment save failed (non-fatal):', err);
+  }
+}
+
+async function loadAssessmentHistory(offset = 0) {
+  if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) return;
+  const container = document.getElementById('historyList');
+  const paginationEl = document.getElementById('historyPagination');
+  if (!container) return;
+  try {
+    const { data, meta } = await ApiClient.get(`/assessments?limit=6&offset=${offset}`);
+    if (!data.length && offset === 0) {
+      container.innerHTML = '<p class="muted">No assessments saved yet. Run an assessment to get started.</p>';
+      if (paginationEl) paginationEl.innerHTML = '';
+      return;
+    }
+    container.innerHTML = data.map(a => `
+      <div class="history-card" onclick="loadHistoricalAssessment('${a.id}')">
+        <strong>${a.business_name}</strong>
+        <span class="muted">${new Date(a.created_at).toLocaleDateString()}</span>
+        <div class="history-scores">
+          <span>Overall: <b>${a.overall_score}%</b></span>
+          <span>Cyber: ${a.cyber_score}%</span>
+          <span>AI: ${a.ai_score}%</span>
+          <span>Funding: ${a.funding_score}%</span>
+        </div>
+        <span class="maturity-pill">${level(a.overall_score)}</span>
+      </div>
+    `).join('');
+    if (paginationEl) renderPagination(meta, offset);
+  } catch (err) {
+    console.error('Failed to load history:', err);
+  }
+}
+
+async function loadHistoricalAssessment(id) {
+  try {
+    const assessment = await ApiClient.get(`/assessments/${id}`);
+    // API returns flat fields (not nested inputs object)
+    const fields = {
+      mfa: assessment.mfa, backups: assessment.backups, training: assessment.training,
+      digitalTools: assessment.digital_tools, automation: assessment.automation,
+      aiUsage: assessment.ai_usage, documents: assessment.documents,
+      onlinePresence: assessment.online_presence, growthPlan: assessment.growth_plan,
+    };
+    for (const [fieldId, val] of Object.entries(fields)) {
+      const el = document.getElementById(fieldId);
+      if (el && val !== undefined) el.value = val;
+    }
+    const bizNameEl = document.getElementById('businessName');
+    if (bizNameEl && assessment.business_name) bizNameEl.value = assessment.business_name;
+    const industryEl = document.getElementById('industry');
+    if (industryEl && assessment.industry) industryEl.value = assessment.industry;
+    const challengeEl = document.getElementById('challenge');
+    if (challengeEl && assessment.challenge) challengeEl.value = assessment.challenge;
+    // Re-run the analysis with historical data
+    analyze();
+    document.getElementById('assessment')?.scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    console.error('Failed to load historical assessment:', err);
+  }
+}
+
+function renderPagination(meta, currentOffset) {
+  const el = document.getElementById('historyPagination');
+  if (!el) return;
+  el.innerHTML = '';
+  const limit = meta.limit || 6;
+  if (currentOffset > 0) {
+    const prev = document.createElement('button');
+    prev.className = 'button secondary';
+    prev.textContent = 'Previous';
+    prev.onclick = () => loadAssessmentHistory(currentOffset - limit);
+    el.appendChild(prev);
+  }
+  if (meta.has_more) {
+    const next = document.createElement('button');
+    next.className = 'button secondary';
+    next.textContent = 'Next';
+    next.onclick = () => loadAssessmentHistory(currentOffset + limit);
+    el.appendChild(next);
+  }
+}
+
+// Register auth change listener so history loads when user logs in
+if (typeof Auth !== 'undefined') {
+  Auth.onAuthChange(({ loggedIn }) => {
+    if (loggedIn) loadAssessmentHistory();
+  });
 }

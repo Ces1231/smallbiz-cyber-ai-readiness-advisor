@@ -7,7 +7,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
-from backend.dependencies import get_supabase_client, get_current_user
+from backend.dependencies import get_supabase_client, get_current_user, get_token
 from backend.schemas.auth import (
     SignupRequest,
     LoginRequest,
@@ -38,7 +38,8 @@ async def signup(
         )
     except Exception as exc:
         err_str = str(exc).lower()
-        if "already registered" in err_str or "email" in err_str and "exist" in err_str:
+        if "already registered" in err_str or ("email" in err_str and "exist" in err_str) or "user already exists" in err_str:
+            log.info("signup_conflict", reason="email_exists")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={
@@ -87,21 +88,23 @@ async def login(
         )
     except Exception as exc:
         err_str = str(exc).lower()
-        if "invalid" in err_str or "credentials" in err_str or "wrong" in err_str:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={
-                    "error": "auth_invalid_credentials",
-                    "message": "Incorrect email or password.",
-                    "details": {},
-                },
-            )
-        if "confirm" in err_str or "email" in err_str and "not confirmed" in err_str:
+        if "not confirmed" in err_str:
+            log.warning("login_failed", reason="email_unconfirmed")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "error": "auth_email_unconfirmed",
                     "message": "Please confirm your email before logging in.",
+                    "details": {},
+                },
+            )
+        if "invalid" in err_str or "credentials" in err_str or "wrong" in err_str:
+            log.warning("login_failed", reason="invalid_credentials")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "error": "auth_invalid_credentials",
+                    "message": "Incorrect email or password.",
                     "details": {},
                 },
             )
@@ -136,14 +139,17 @@ async def login(
 
 @router.post("/logout", response_model=MessageResponse, status_code=200)
 async def logout(
+    token: str = Depends(get_token),
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ) -> MessageResponse:
-    """Revoke the current session."""
+    """Revoke the current session by invalidating the user's JWT via the admin API."""
     try:
-        supabase.auth.sign_out()
+        # Use admin sign_out to revoke the specific user's JWT on the server side
+        supabase.auth.admin.sign_out(token)
     except Exception as exc:
-        log.error("logout_error", error=str(exc))
+        # Non-fatal: client-side token clearing still occurs; log the admin revocation failure
+        log.error("logout_revocation_error", error=str(exc), user_id=current_user["id"])
     log.info("logout_success", user_id=current_user["id"])
     return MessageResponse(message="Logged out successfully.")
 

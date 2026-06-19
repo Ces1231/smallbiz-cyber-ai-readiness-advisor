@@ -45,7 +45,7 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception as exc:
-        log.info(
+        log.warning(
             "token_invalid",
             error=str(exc),
         )
@@ -57,3 +57,10 @@ async def get_current_user(
                 "details": {},
             },
         )
+
+
+async def get_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    """Returns the raw Bearer token string for endpoints that need to pass it to Supabase admin."""
+    return credentials.credentials

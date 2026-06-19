@@ -141,7 +141,7 @@ async def save_baseline(
         )
 
     row = result.data[0]
-    log.info("baseline_saved", user_id=user_id)
+    log.info("baseline_saved", user_id=user_id, assessment_id=assessment_id)
     return BaselineSaveResponse(
         id=row["id"],
         overall_score=row["overall_score"],
