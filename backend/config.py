@@ -13,6 +13,19 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
 
+    # AI provider settings
+    ai_provider: str = "anthropic"
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-3-5-haiku-20241022"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.1-8b-instant"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+    ai_max_tokens: int = 1024
+    ai_temperature: float = 0.7
+
     @property
     def origins_list(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",")]

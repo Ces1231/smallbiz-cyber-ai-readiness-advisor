@@ -153,6 +153,12 @@
         <p class="eyebrow">Step 2</p>
         <h2>Dashboard Results</h2>
         <p>Your free readiness scores are ready. Unlock the full action plan to see exactly what to fix and in what order.</p>
+        <div id="aiAdvisorTrigger" style="display:none">
+          <button class="button primary" onclick="showAIAdvisor()">
+            Get AI-Powered Advice
+          </button>
+          <p class="muted" style="margin-top:8px">Personalized recommendations for your specific scores and business.</p>
+        </div>
       </div>
 
       <!-- FREE TIER: scores, issue summary, before/after, exec summary -->
@@ -270,6 +276,46 @@
               <tbody id="riskRegister"></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="panel ai-advisor-panel" id="aiAdvisorPanel" style="display:none">
+          <div class="ai-advisor-header">
+            <h3>AI Advisor — Personalized Action Plan</h3>
+            <p class="muted">Powered by <span id="aiProviderLabel">AI</span>. Personalized to your business and scores.</p>
+          </div>
+
+          <div class="ai-dimensions">
+            <div class="ai-dimension-card" id="aiCyberCard">
+              <div class="ai-dimension-header">
+                <h4>Cybersecurity Advice</h4>
+                <button class="button secondary small" onclick="requestAIAdvice('cyber')">Generate</button>
+              </div>
+              <div id="aiCyberOutput" class="ai-output"></div>
+            </div>
+
+            <div class="ai-dimension-card" id="aiReadinessCard">
+              <div class="ai-dimension-header">
+                <h4>AI Readiness Advice</h4>
+                <button class="button secondary small" onclick="requestAIAdvice('ai')">Generate</button>
+              </div>
+              <div id="aiReadinessOutput" class="ai-output"></div>
+            </div>
+
+            <div class="ai-dimension-card" id="aiFundingCard">
+              <div class="ai-dimension-header">
+                <h4>Funding Readiness Advice</h4>
+                <button class="button secondary small" onclick="requestAIAdvice('funding')">Generate</button>
+              </div>
+              <div id="aiFundingOutput" class="ai-output"></div>
+            </div>
+          </div>
+
+          <div class="ai-full-row">
+            <button class="button primary" onclick="requestAIAdvice('roadmap')">Generate AI Roadmap</button>
+            <button class="button secondary" onclick="requestAIAdvice('executive_summary')">AI Executive Summary</button>
+          </div>
+          <div id="aiRoadmapOutput" class="ai-output full-width"></div>
+          <div id="aiSummaryOutput" class="ai-output full-width"></div>
         </div>
 
         <div class="panel funding-prep">

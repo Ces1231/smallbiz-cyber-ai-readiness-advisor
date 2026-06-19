@@ -205,6 +205,9 @@ Built by Champtron Systems LLC.`;
   // Cloud save hook — only when logged in; anonymous users run normally
   if (typeof Auth !== 'undefined' && Auth.isLoggedIn()) {
     saveAssessmentToCloud(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall);
+    // Show AI advisor trigger button for logged-in users with a saved assessment
+    const trigger = document.getElementById('aiAdvisorTrigger');
+    if (trigger) trigger.style.display = 'block';
   }
 }
 
@@ -929,4 +932,263 @@ if (typeof Auth !== 'undefined') {
   Auth.onAuthChange(({ loggedIn }) => {
     if (loggedIn) loadAssessmentHistory();
   });
+}
+
+// ── AI Advisor Streaming (SPRINT-002) ─────────────────────────────────────────
+
+// Show AI advisor panel — only when logged in and assessment is saved
+function showAIAdvisor() {
+    const panel = document.getElementById('aiAdvisorPanel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Core streaming function — reads SSE chunks and writes to a DOM element
+async function streamToElement(url, elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.textContent = '';
+    showTypingIndicator(elementId);
+
+    try {
+        const token = Auth && typeof Auth.getToken === 'function' ? Auth.getToken() : null;
+        const response = await fetch(url, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) {
+            el.textContent = 'Unable to generate advice. Please try again.';
+            hideTypingIndicator(elementId);
+            return;
+        }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let isErrorEvent = false;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep incomplete line in buffer
+            for (const line of lines) {
+                if (line.startsWith('event: error')) { isErrorEvent = true; continue; }
+                if (line === '') { isErrorEvent = false; continue; }
+                if (line.startsWith('data: ')) {
+                    if (isErrorEvent) {
+                        el.textContent = 'Unable to generate advice. Please try again.';
+                        isErrorEvent = false;
+                        continue;
+                    }
+                    const chunk = line.slice(6);
+                    if (chunk === '[DONE]' || chunk === '[CACHED]') continue;
+                    el.textContent += chunk;
+                }
+            }
+        }
+    } catch (err) {
+        el.textContent = 'Connection error. Please check your connection and try again.';
+        console.error('Stream error:', err);
+    }
+    hideTypingIndicator(elementId);
+}
+
+// Streams the AI roadmap into #aiRoadmapOutput (real-time) and parses
+// labeled 30/60/90 sections into the existing #road30/#road60/#road90 elements.
+async function streamRoadmapToElements(assessmentId) {
+    const apiBase = window.ADVISOR_API_URL || 'http://localhost:8000';
+    const url = `${apiBase}/ai/advice/${assessmentId}/roadmap`;
+    const token = Auth && typeof Auth.getToken === 'function' ? Auth.getToken() : null;
+    const outputEl = document.getElementById('aiRoadmapOutput');
+
+    // Save static roadmap text for fallback before showing typing indicators
+    const staticRoadmap = {};
+    ['road30', 'road60', 'road90'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) staticRoadmap[id] = el.textContent;
+    });
+
+    try {
+        const response = await fetch(url, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) {
+            if (outputEl) outputEl.textContent = 'Unable to generate roadmap. Please try again.';
+            return;
+        }
+
+        if (outputEl) { outputEl.textContent = ''; showTypingIndicator('aiRoadmapOutput'); }
+        ['road30', 'road60', 'road90'].forEach(id => showTypingIndicator(id));
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        let buffer = '';
+        let isErrorEvent = false;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (line.startsWith('event: error')) { isErrorEvent = true; continue; }
+                if (line === '') { isErrorEvent = false; continue; }
+                if (line.startsWith('data: ')) {
+                    if (isErrorEvent) {
+                        if (outputEl) outputEl.textContent = 'Unable to generate roadmap. Please try again.';
+                        isErrorEvent = false;
+                        continue;
+                    }
+                    const chunk = line.slice(6);
+                    if (chunk !== '[DONE]' && chunk !== '[CACHED]') {
+                        fullText += chunk;
+                        if (outputEl) outputEl.textContent += chunk;
+                    }
+                }
+            }
+        }
+
+        hideTypingIndicator('aiRoadmapOutput');
+        ['road30', 'road60', 'road90'].forEach(id => hideTypingIndicator(id));
+
+        // Parse labeled sections into existing roadmap elements
+        const sections = { '30 Days': 'road30', '60 Days': 'road60', '90 Days': 'road90' };
+        for (const [label, id] of Object.entries(sections)) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            const regex = new RegExp(label + ':([^]*?)(?=30 Days:|60 Days:|90 Days:|$)');
+            const match = fullText.match(regex);
+            if (match && match[1].trim()) {
+                el.textContent = match[1].trim();
+            } else if (staticRoadmap[id]) {
+                // Restore static text as fallback if AI section not found
+                el.textContent = staticRoadmap[id];
+            }
+        }
+    } catch (err) {
+        hideTypingIndicator('aiRoadmapOutput');
+        ['road30', 'road60', 'road90'].forEach(id => hideTypingIndicator(id));
+        if (outputEl) outputEl.textContent = 'Connection error. Please check your connection and try again.';
+        // Restore static roadmap on error
+        Object.entries(staticRoadmap).forEach(([id, text]) => {
+            const el = document.getElementById(id);
+            if (el && !el.textContent) el.textContent = text;
+        });
+        console.error('Roadmap stream error:', err);
+    }
+}
+
+// Streams the AI executive summary into both #aiSummaryOutput (AI panel)
+// and replaces the static #executiveSummary text in the free tier panel.
+// Preserves the static text as a data attribute for fallback.
+async function streamExecutiveSummaryToElement(assessmentId) {
+    const apiBase = window.ADVISOR_API_URL || 'http://localhost:8000';
+    const url = `${apiBase}/ai/advice/${assessmentId}/executive_summary`;
+    const token = Auth && typeof Auth.getToken === 'function' ? Auth.getToken() : null;
+    const summaryOutputEl = document.getElementById('aiSummaryOutput');
+    const staticSummaryEl = document.getElementById('executiveSummary');
+
+    // Preserve static summary as fallback before clearing
+    if (staticSummaryEl && !staticSummaryEl.dataset.staticSummary) {
+        staticSummaryEl.dataset.staticSummary = staticSummaryEl.textContent;
+    }
+
+    try {
+        const response = await fetch(url, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) {
+            if (summaryOutputEl) summaryOutputEl.textContent = 'Unable to generate summary. Please try again.';
+            return;
+        }
+
+        if (summaryOutputEl) { summaryOutputEl.textContent = ''; showTypingIndicator('aiSummaryOutput'); }
+        if (staticSummaryEl) staticSummaryEl.textContent = '';
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let isErrorEvent = false;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                if (line.startsWith('event: error')) { isErrorEvent = true; continue; }
+                if (line === '') { isErrorEvent = false; continue; }
+                if (line.startsWith('data: ')) {
+                    if (isErrorEvent) {
+                        if (summaryOutputEl) summaryOutputEl.textContent = 'Unable to generate summary. Please try again.';
+                        // Restore static text on error
+                        if (staticSummaryEl && staticSummaryEl.dataset.staticSummary) {
+                            staticSummaryEl.textContent = staticSummaryEl.dataset.staticSummary;
+                        }
+                        isErrorEvent = false;
+                        continue;
+                    }
+                    const chunk = line.slice(6);
+                    if (chunk !== '[DONE]' && chunk !== '[CACHED]') {
+                        if (summaryOutputEl) summaryOutputEl.textContent += chunk;
+                        if (staticSummaryEl) staticSummaryEl.textContent += chunk;
+                    }
+                }
+            }
+        }
+
+        hideTypingIndicator('aiSummaryOutput');
+    } catch (err) {
+        hideTypingIndicator('aiSummaryOutput');
+        if (summaryOutputEl) summaryOutputEl.textContent = 'Connection error. Please check your connection and try again.';
+        // Restore static summary on connection error
+        if (staticSummaryEl && staticSummaryEl.dataset.staticSummary) {
+            staticSummaryEl.textContent = staticSummaryEl.dataset.staticSummary;
+        }
+        console.error('Executive summary stream error:', err);
+    }
+}
+
+// Requests AI advice for a given dimension using the saved assessment ID
+async function requestAIAdvice(dimension) {
+    const assessmentId = window._lastSavedAssessmentId;
+    if (!assessmentId) {
+        alert('Save the assessment first by logging in, then request AI advice.');
+        return;
+    }
+
+    if (dimension === 'roadmap') {
+        await streamRoadmapToElements(assessmentId);
+        return;
+    }
+    if (dimension === 'executive_summary') {
+        await streamExecutiveSummaryToElement(assessmentId);
+        return;
+    }
+
+    const outputIds = {
+        cyber: 'aiCyberOutput',
+        ai: 'aiReadinessOutput',
+        funding: 'aiFundingOutput',
+    };
+    const outputId = outputIds[dimension];
+    if (!outputId) return;
+    const apiBase = window.ADVISOR_API_URL || 'http://localhost:8000';
+    await streamToElement(`${apiBase}/ai/advice/${assessmentId}/${dimension}`, outputId);
+}
+
+function showTypingIndicator(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.innerHTML = '<span class="typing-indicator"><span></span><span></span><span></span></span>';
+}
+
+function hideTypingIndicator(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const indicator = el.querySelector('.typing-indicator');
+    if (indicator) indicator.remove();
 }

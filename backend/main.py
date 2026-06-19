@@ -38,6 +38,11 @@ def create_app() -> FastAPI:
         description="Backend API for SmallBiz Cyber & AI Readiness Advisor — Champtron Systems LLC",
     )
 
+    # Request ID middleware — assigns UUID per request, binds to structlog context
+    # Enables log correlation across concurrent SSE streaming requests
+    from backend.middleware.request_id import RequestIDMiddleware
+    app.add_middleware(RequestIDMiddleware)
+
     # CORS
     app.add_middleware(
         CORSMiddleware,
@@ -51,10 +56,14 @@ def create_app() -> FastAPI:
     from backend.routers.auth import router as auth_router
     from backend.routers.assessments import router as assessments_router
     from backend.routers.baselines import router as baselines_router
+    from backend.routers.startup import router as startup_router
+    from backend.routers.ai import router as ai_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(assessments_router, prefix="/assessments", tags=["assessments"])
     app.include_router(baselines_router, prefix="/baselines", tags=["baselines"])
+    app.include_router(startup_router, prefix="/startup", tags=["startup"])
+    app.include_router(ai_router, prefix="/ai", tags=["ai"])
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict:
