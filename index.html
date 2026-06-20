@@ -24,6 +24,10 @@
       </div>
       <div id="userMenu" style="display:none">
         <span id="userEmailDisplay" class="muted"></span>
+        <div id="subscriptionStatus" style="display:none;align-items:center;gap:8px">
+          <span id="tierBadge" class="tier-badge"></span>
+          <button class="button secondary small" onclick="openBillingPortal()" id="manageBillingBtn" style="display:none">Manage Billing</button>
+        </div>
         <button class="button secondary" onclick="Auth.logout().then(refreshAuthUI)">Logout</button>
       </div>
     </nav>
@@ -158,6 +162,35 @@
             Get AI-Powered Advice
           </button>
           <p class="muted" style="margin-top:8px">Personalized recommendations for your specific scores and business.</p>
+        </div>
+
+        <!-- Upgrade banner — shown dynamically based on quota usage -->
+        <div id="upgradeBanner" class="upgrade-banner hidden" role="alert">
+          <div style="flex:1">
+            <strong id="upgradeBannerTitle">Upgrade to Pro</strong>
+            <span id="upgradeBannerMessage"> — Unlock unlimited assessments and AI-powered advice.</span>
+          </div>
+          <button class="button primary small" onclick="initiateCheckout('monthly')">Upgrade — $9/mo</button>
+          <button class="button secondary small" onclick="initiateCheckout('yearly')">Best Value — $99/yr</button>
+        </div>
+
+        <!-- AI Advisor paywall overlay — shown to free users who click Get AI Advice -->
+        <div id="aiAdvisorPaywall" class="paywall-overlay hidden">
+          <div class="paywall-card">
+            <h3>AI Advisor — Pro Feature</h3>
+            <p>Get personalized, AI-generated action plans for your cybersecurity, AI readiness, and funding scores.</p>
+            <ul class="feature-list">
+              <li>Personalized advice per dimension</li>
+              <li>AI-generated 30/60/90-day roadmap</li>
+              <li>Custom executive summary</li>
+              <li>Unlimited assessments per month</li>
+            </ul>
+            <div class="pricing-row">
+              <button class="button primary" onclick="initiateCheckout('monthly')">Start Pro — $9/mo</button>
+              <button class="button secondary" onclick="initiateCheckout('yearly')">Annual — $99/yr (save 8%)</button>
+            </div>
+            <p class="muted" style="font-size:13px;margin-top:12px">Cancel anytime from your billing settings.</p>
+          </div>
         </div>
       </div>
 

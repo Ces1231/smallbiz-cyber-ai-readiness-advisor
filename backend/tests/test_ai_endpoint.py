@@ -135,6 +135,11 @@ def _make_authed_client(mock_supabase, mock_ai_provider=None):
         from backend.ai.factory import get_ai_provider
         app.dependency_overrides[get_ai_provider] = lambda: mock_ai_provider
 
+    # Bypass tier enforcement — AI endpoint tests are for streaming logic, not billing
+    from backend.middleware.tier import require_pro_tier
+    pro_profile = {"id": TEST_USER_ID, "tier": "pro"}
+    app.dependency_overrides[require_pro_tier] = lambda: pro_profile
+
     return TestClient(app, raise_server_exceptions=False)
 
 

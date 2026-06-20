@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Champtron Systems LLC</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero" style="padding:20px 6vw">
+    <nav>
+      <div class="brand">
+        <strong>Champtron Systems LLC</strong>
+        <span>Admin Dashboard</span>
+      </div>
+      <span id="adminUserEmail" class="muted"></span>
+      <button class="button secondary" onclick="Auth.logout().then(() => window.location = '/')">Logout</button>
+    </nav>
+  </header>
+
+  <main style="padding:32px 6vw; max-width:1200px; margin:0 auto">
+    <div id="adminGate">
+      <p class="muted">Checking admin access...</p>
+    </div>
+
+    <div id="adminContent" style="display:none">
+      <h2>Platform Overview</h2>
+      <div class="dashboard-grid" id="metricsGrid" style="gap:16px;margin-bottom:32px"></div>
+
+      <h2>Users</h2>
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="button secondary small" onclick="loadUsers(0, null)">All Tiers</button>
+        <button class="button secondary small" onclick="loadUsers(0, 'free')">Free</button>
+        <button class="button secondary small" onclick="loadUsers(0, 'pro')">Pro</button>
+        <button class="button secondary small" onclick="loadUsers(0, 'admin')">Admin</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="risk-table" style="width:100%">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Business Name</th>
+              <th>Tier</th>
+              <th>Assessments This Month</th>
+              <th>Member Since</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="5" class="muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="usersPagination" style="display:flex;gap:12px;margin-top:16px"></div>
+    </div>
+  </main>
+
+  <script src="auth.js"></script>
+  <script src="api-client.js"></script>
+  <script>
+    let _currentTierFilter = null;
+    const PAGE_SIZE = 20;
+
+    async function loadAdminDashboard() {
+      const gate = document.getElementById('adminGate');
+      const content = document.getElementById('adminContent');
+
+      // Verify admin tier
+      let profile;
+      try {
+        profile = await ApiClient.get('/profiles/me');
+      } catch (err) {
+        gate.innerHTML = '<p class="muted">Unable to verify access. <a href="/">Go to main tool</a>.</p>';
+        return;
+      }
+
+      if (profile.tier !== 'admin') {
+        gate.innerHTML = '<p class="muted">Admin access required. <a href="/">Go to main tool</a>.</p>';
+        return;
+      }
+
+      gate.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('adminUserEmail').textContent = Auth.getUser()?.email || '';
+
+      await Promise.all([loadMetrics(), loadUsers(0, null)]);
+    }
+
+    async function loadMetrics() {
+      const grid = document.getElementById('metricsGrid');
+      try {
+        const m = await ApiClient.get('/admin/metrics');
+        const cards = [
+          { label: 'Total Users',           value: m.total_users },
+          { label: 'Free Users',            value: m.free_users },
+          { label: 'Pro Users',             value: m.pro_users },
+          { label: 'Total Assessments',     value: m.total_assessments },
+          { label: 'Assessments This Month',value: m.assessments_this_month },
+          { label: 'AI Requests This Month',value: m.ai_advice_requests_this_month },
+          { label: 'Avg Overall Score',     value: `${m.average_overall_score}%` },
+          { label: 'Top Industry',          value: m.most_common_industry },
+        ];
+        grid.innerHTML = cards.map(c => `
+          <div class="score-card" style="text-align:center;padding:20px 16px">
+            <div style="font-size:2rem;font-weight:700;color:var(--cyan)">${c.value}</div>
+            <div class="muted" style="font-size:13px;margin-top:6px">${c.label}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        grid.innerHTML = '<p class="muted">Unable to load metrics.</p>';
+      }
+    }
+
+    async function loadUsers(offset, tierFilter) {
+      _currentTierFilter = tierFilter;
+      const tbody = document.getElementById('usersTableBody');
+      const pager = document.getElementById('usersPagination');
+      tbody.innerHTML = '<tr><td colspan="5" class="muted">Loading...</td></tr>';
+
+      try {
+        const qs = new URLSearchParams({ limit: PAGE_SIZE, offset });
+        if (tierFilter) qs.set('tier', tierFilter);
+        const { data, meta } = await ApiClient.get(`/admin/users?${qs}`);
+
+        if (!data.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="muted">No users found.</td></tr>';
+          pager.innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.map(u => `
+          <tr>
+            <td style="font-family:monospace;font-size:12px">${u.id.slice(0, 8)}…</td>
+            <td>${u.business_name || '<span class="muted">—</span>'}</td>
+            <td><span class="tier-badge ${u.tier}">${u.tier}</span></td>
+            <td>${u.assessments_this_month}</td>
+            <td>${new Date(u.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+
+        pager.innerHTML = '';
+        if (offset > 0) {
+          const prev = document.createElement('button');
+          prev.className = 'button secondary small';
+          prev.textContent = 'Previous';
+          prev.onclick = () => loadUsers(offset - PAGE_SIZE, tierFilter);
+          pager.appendChild(prev);
+        }
+        if (meta.has_more) {
+          const next = document.createElement('button');
+          next.className = 'button secondary small';
+          next.textContent = 'Next';
+          next.onclick = () => loadUsers(offset + PAGE_SIZE, tierFilter);
+          pager.appendChild(next);
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted">Unable to load users. Ensure you have admin access.</td></tr>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof Auth === 'undefined') {
+        document.getElementById('adminGate').innerHTML =
+          '<p class="muted">Auth not available. <a href="/">Go to main tool</a>.</p>';
+        return;
+      }
+      Auth.onAuthChange(({ loggedIn }) => {
+        if (loggedIn) {
+          loadAdminDashboard();
+        } else {
+          document.getElementById('adminGate').innerHTML =
+            '<p class="muted">Please <a href="/">log in</a> with an admin account.</p>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -58,12 +58,18 @@ def create_app() -> FastAPI:
     from backend.routers.baselines import router as baselines_router
     from backend.routers.startup import router as startup_router
     from backend.routers.ai import router as ai_router
+    from backend.routers.profiles import router as profiles_router
+    from backend.routers.billing import router as billing_router
+    from backend.routers.admin import router as admin_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(assessments_router, prefix="/assessments", tags=["assessments"])
     app.include_router(baselines_router, prefix="/baselines", tags=["baselines"])
     app.include_router(startup_router, prefix="/startup", tags=["startup"])
     app.include_router(ai_router, prefix="/ai", tags=["ai"])
+    app.include_router(profiles_router, prefix="/profiles", tags=["profiles"])
+    app.include_router(billing_router, prefix="/billing", tags=["billing"])
+    app.include_router(admin_router, prefix="/admin", tags=["admin"])
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict:

@@ -183,3 +183,16 @@ footer{padding:28px 6vw;border-top:1px solid var(--border);display:flex;justify-
 .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
 .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
 @keyframes typing-bounce { 0%, 80%, 100% { transform: scale(0); opacity: .5; } 40% { transform: scale(1); opacity: 1; } }
+
+/* ── Billing UI (SPRINT-003) ─────────────────────────────────────────────────── */
+.upgrade-banner { background: linear-gradient(135deg, rgba(34,211,238,.15), rgba(96,165,250,.12)); border: 1px solid rgba(34,211,238,.4); border-radius: 18px; padding: 18px 22px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 0 0 18px; }
+.paywall-overlay { background: var(--panel); border: 1px solid var(--border); border-radius: 24px; padding: 40px; text-align: center; margin-top: 18px; }
+.paywall-card { max-width: 520px; margin: 0 auto; }
+.feature-list { text-align: left; margin: 18px auto; max-width: 300px; list-style: none; padding: 0; }
+.feature-list li { margin: 10px 0; color: var(--text); }
+.feature-list li::before { content: "✓ "; color: var(--green); font-weight: 700; }
+.pricing-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.tier-badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .03em; vertical-align: middle; }
+.tier-badge.free { background: rgba(255,255,255,.08); color: var(--muted); }
+.tier-badge.pro { background: linear-gradient(135deg, rgba(34,211,238,.2), rgba(96,165,250,.2)); color: var(--cyan); border: 1px solid rgba(34,211,238,.3); }
+.button.small { padding: 6px 14px; font-size: 13px; }

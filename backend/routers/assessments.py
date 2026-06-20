@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
 
 from backend.dependencies import get_current_user, get_supabase_client
+from backend.middleware.tier import check_assessment_quota, increment_assessment_count
 from backend.schemas.assessments import (
     AssessmentCreate,
     AssessmentDetail,
@@ -54,6 +55,7 @@ def _check_rate_limit(user_id: str) -> None:
 async def create_assessment(
     body: AssessmentCreate,
     current_user: dict = Depends(get_current_user),
+    profile: dict = Depends(check_assessment_quota),
     supabase: Client = Depends(get_supabase_client),
 ) -> AssessmentResponse:
     """Save a completed assessment for the authenticated user."""
@@ -107,6 +109,11 @@ async def create_assessment(
 
     row = result.data[0]
     log.info("assessment_saved", user_id=user_id, assessment_id=row["id"])
+
+    # Increment monthly counter for free-tier users (non-fatal if it fails)
+    if profile.get("tier") == "free":
+        await increment_assessment_count(profile, supabase)
+
     return AssessmentResponse(
         id=row["id"],
         created_at=row["created_at"],

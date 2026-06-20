@@ -927,17 +927,117 @@ function renderPagination(meta, currentOffset) {
   }
 }
 
-// Register auth change listener so history loads when user logs in
+// Register auth change listener so history loads and tier UI refreshes on login
 if (typeof Auth !== 'undefined') {
   Auth.onAuthChange(({ loggedIn }) => {
-    if (loggedIn) loadAssessmentHistory();
+    if (loggedIn) {
+      loadAssessmentHistory();
+      checkTierAndShowUpgrade();
+    }
   });
+}
+
+// ── Billing UI (SPRINT-003) ───────────────────────────────────────────────────
+
+async function checkTierAndShowUpgrade() {
+    if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) return;
+    try {
+        const profile = await ApiClient.get('/profiles/me');
+        window._userProfile = profile;
+        updateTierUI(profile);
+    } catch (err) {
+        console.warn('Could not load profile:', err);
+    }
+}
+
+function updateTierUI(profile) {
+    const subStatus = document.getElementById('subscriptionStatus');
+    const badge = document.getElementById('tierBadge');
+    const manageBtn = document.getElementById('manageBillingBtn');
+
+    if (subStatus) subStatus.style.display = 'flex';
+    if (badge) {
+        badge.textContent = profile.tier === 'pro' ? 'Pro' : 'Free';
+        badge.className = `tier-badge ${profile.tier}`;
+    }
+    if (manageBtn) {
+        manageBtn.style.display = profile.has_active_subscription ? 'inline-flex' : 'none';
+    }
+
+    // Upgrade banner for free users
+    if (profile.tier === 'free') {
+        if (profile.assessments_this_month >= 3) {
+            showUpgradeBanner('limit_reached');
+        } else if (profile.assessments_this_month >= 2) {
+            showUpgradeBanner('approaching_limit');
+        }
+    }
+
+    // Refresh tier badge after checkout return
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+        setTimeout(checkTierAndShowUpgrade, 3000); // webhook may lag slightly
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+
+function showUpgradeBanner(reason) {
+    const banner = document.getElementById('upgradeBanner');
+    const title = document.getElementById('upgradeBannerTitle');
+    const msg = document.getElementById('upgradeBannerMessage');
+    if (!banner) return;
+    if (reason === 'limit_reached') {
+        title.textContent = 'Monthly Limit Reached';
+        msg.textContent = ' — Upgrade to Pro for unlimited assessments + AI Advisor.';
+    } else {
+        const remaining = 3 - (window._userProfile?.assessments_this_month || 0);
+        title.textContent = 'Almost at your free limit';
+        msg.textContent = ` — ${remaining} assessment${remaining === 1 ? '' : 's'} remaining this month.`;
+    }
+    banner.classList.remove('hidden');
+}
+
+async function initiateCheckout(plan) {
+    if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) {
+        if (typeof showAuthModal === 'function') showAuthModal('signup');
+        return;
+    }
+    try {
+        const { checkout_url } = await ApiClient.post('/billing/checkout', {
+            price_id: `price_${plan}`
+        });
+        window.location.href = checkout_url;
+    } catch (err) {
+        if (err && err.status === 409) {
+            alert('You already have an active subscription.');
+        } else {
+            alert('Unable to start checkout. Please try again.');
+        }
+    }
+}
+
+async function openBillingPortal() {
+    try {
+        const { portal_url } = await ApiClient.post('/billing/portal');
+        window.open(portal_url, '_blank');
+    } catch (err) {
+        alert('Unable to open billing portal. Please try again.');
+    }
 }
 
 // ── AI Advisor Streaming (SPRINT-002) ─────────────────────────────────────────
 
-// Show AI advisor panel — only when logged in and assessment is saved
+// Show AI advisor panel — checks tier; shows paywall for free users
 function showAIAdvisor() {
+    const profile = window._userProfile;
+    if (!profile || profile.tier === 'free') {
+        const paywall = document.getElementById('aiAdvisorPaywall');
+        if (paywall) {
+            paywall.classList.remove('hidden');
+            paywall.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+    }
     const panel = document.getElementById('aiAdvisorPanel');
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth' });
