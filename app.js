@@ -933,9 +933,89 @@ if (typeof Auth !== 'undefined') {
     if (loggedIn) {
       loadAssessmentHistory();
       checkTierAndShowUpgrade();
+      if (shouldShowOnboarding()) {
+        // Small delay to let the UI settle after login
+        setTimeout(showOnboardingModal, 300);
+      }
     }
   });
 }
+
+// ── Onboarding Gate (SPRINT-005) ─────────────────────────────────────────────
+
+var ONBOARDING_KEY = 'onboardingComplete';
+
+function shouldShowOnboarding() {
+  return localStorage.getItem(ONBOARDING_KEY) !== 'true';
+}
+
+function markOnboardingComplete() {
+  localStorage.setItem(ONBOARDING_KEY, 'true');
+}
+
+function showOnboardingModal() {
+  var modal = document.getElementById('onboardingModal');
+  if (!modal) return;
+  // Reset to Q1 state
+  document.getElementById('onboardingQ1').classList.remove('hidden');
+  document.getElementById('onboardingQ2').classList.add('hidden');
+  document.getElementById('onboardingChamp').classList.add('hidden');
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function hideOnboardingModal() {
+  var modal = document.getElementById('onboardingModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+window.onboardingQ1Yes = function() {
+  // Existing business path — dismiss modal, stay on assessment
+  markOnboardingComplete();
+  hideOnboardingModal();
+  // Scroll to assessment section (current flow)
+  var assessment = document.getElementById('assessment');
+  if (assessment) assessment.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.onboardingQ1No = function() {
+  // Show Q2
+  document.getElementById('onboardingQ1').classList.add('hidden');
+  document.getElementById('onboardingQ2').classList.remove('hidden');
+};
+
+window.onboardingBack = function() {
+  // Back to Q1
+  document.getElementById('onboardingQ2').classList.add('hidden');
+  document.getElementById('onboardingQ1').classList.remove('hidden');
+};
+
+window.onboardingQ2Yes = function() {
+  // Startup path — show placeholder (startup web path not yet built)
+  markOnboardingComplete();
+  hideOnboardingModal();
+  var notice = document.createElement('div');
+  notice.className = 'startup-notice';
+  notice.innerHTML = '<div class="panel" style="margin:24px auto;max-width:600px;padding:24px;text-align:center"><h3 style="color:var(--green)">Starting a Business?</h3><p class="muted">Our guided startup assessment is coming soon on web. In the meantime, try the <strong>SmallBiz Advisor mobile app</strong> (Expo Go) for the full startup readiness assessment.</p></div>';
+  var nav = document.querySelector('nav');
+  if (nav) nav.after(notice);
+  notice.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.onboardingQ2No = function() {
+  // Show Champtron info panel inside the modal
+  document.getElementById('onboardingQ2').classList.add('hidden');
+  document.getElementById('onboardingChamp').classList.remove('hidden');
+  // markOnboardingComplete is called on "Continue to App"
+};
+
+window.onboardingDone = function() {
+  // Dismiss Champtron panel
+  markOnboardingComplete();
+  hideOnboardingModal();
+};
 
 // ── Billing UI (SPRINT-003) ───────────────────────────────────────────────────
 

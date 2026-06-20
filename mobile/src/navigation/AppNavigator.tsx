@@ -23,6 +23,7 @@ import { StartupStep8Screen } from '../screens/startup/StartupStep8Screen';
 import { StartupStep9Screen } from '../screens/startup/StartupStep9Screen';
 import { StartupScoreScreen } from '../screens/startup/StartupScoreScreen';
 import { StartupLaunchPlanScreen } from '../screens/startup/StartupLaunchPlanScreen';
+import { ChampInfoScreen } from '../screens/ChampInfoScreen';
 
 // Tab navigator param list
 export type AppTabParamList = {
@@ -40,6 +41,8 @@ export type AppStackParamList = {
   Upgrade: undefined;
   ActionPlan: { assessmentId: string };
   AssessmentDetail: { id: string };
+  // Champtron info
+  ChampInfo: undefined;
   // Startup path
   StartupStep1: undefined;
   StartupStep2: undefined;
@@ -105,6 +108,8 @@ export function AppNavigator() {
       <Stack.Screen name="Upgrade" component={UpgradeScreen} />
       <Stack.Screen name="ActionPlan" component={ActionPlanScreen} />
       <Stack.Screen name="AssessmentDetail" component={AssessmentDetailScreen} />
+      {/* Champtron info */}
+      <Stack.Screen name="ChampInfo" component={ChampInfoScreen} />
       {/* Startup path */}
       <Stack.Screen name="StartupStep1" component={StartupStep1Screen} />
       <Stack.Screen name="StartupStep2" component={StartupStep2Screen} />

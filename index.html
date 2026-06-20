@@ -510,6 +510,74 @@
     </div>
   </div>
 
+  <!-- ── Onboarding Gate Modal (SPRINT-005) ── -->
+  <div id="onboardingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingModalTitle" aria-hidden="true">
+    <div class="modal-box onboarding-modal">
+
+      <!-- Q1 Panel -->
+      <div id="onboardingQ1" class="onboarding-panel">
+        <p class="eyebrow">Step 1 of 2</p>
+        <h2 id="onboardingModalTitle">Are you seeking advice on your current or existing business?</h2>
+        <p class="muted">This helps us route you to the right assessment.</p>
+        <div class="modal-btn-row">
+          <button class="button primary" onclick="onboardingQ1Yes()">Yes</button>
+          <button class="button secondary" onclick="onboardingQ1No()">No</button>
+        </div>
+      </div>
+
+      <!-- Q2 Panel -->
+      <div id="onboardingQ2" class="onboarding-panel hidden">
+        <button class="link-btn" onclick="onboardingBack()">&larr; Back</button>
+        <p class="eyebrow">Step 2 of 2</p>
+        <h2>Are you looking for advice on starting a new business?</h2>
+        <p class="muted">We offer a guided launch readiness assessment for new entrepreneurs.</p>
+        <div class="modal-btn-row">
+          <button class="button primary" onclick="onboardingQ2Yes()">Yes</button>
+          <button class="button secondary" onclick="onboardingQ2No()">No</button>
+        </div>
+      </div>
+
+      <!-- Champtron Info Panel -->
+      <div id="onboardingChamp" class="onboarding-panel hidden">
+        <div class="champ-header">
+          <h2>Champtron Systems LLC</h2>
+          <p class="champ-tagline">Advanced IT Solutions for Modern Businesses</p>
+          <p class="muted">Sanford, FL</p>
+        </div>
+        <p class="champ-about">
+          Local IT solutions provider specializing in automation, networking,
+          infrastructure as code, and AI technologies to help businesses optimize
+          operations. Security-first mindset.
+        </p>
+        <div class="champ-services">
+          <p class="label">Our Services</p>
+          <div class="champ-service-grid">
+            <span class="service-pill">IT Automation</span>
+            <span class="service-pill">Network Solutions</span>
+            <span class="service-pill">Infrastructure as Code</span>
+            <span class="service-pill">Zero Trust Security</span>
+            <span class="service-pill">AI Solutions</span>
+            <span class="service-pill">Data Management</span>
+            <span class="service-pill">Cybersecurity</span>
+            <span class="service-pill">Custom Application Development</span>
+            <span class="service-pill">Website Development</span>
+          </div>
+        </div>
+        <div class="champ-contact">
+          <p><strong>Phone:</strong> <a href="tel:8104070773">(810) 407-0773</a></p>
+          <p><strong>Email:</strong> <a href="mailto:info@champtron-systems.com">info@champtron-systems.com</a></p>
+          <p class="muted">Mon&ndash;Fri 8AM&ndash;6PM &nbsp;|&nbsp; Sat 9AM&ndash;2PM</p>
+        </div>
+        <div class="modal-btn-row">
+          <a href="https://www.champtron-systems.com/#contact" target="_blank" rel="noopener" class="button primary">Book a Free Consultation</a>
+          <a href="https://www.champtron-systems.com" target="_blank" rel="noopener" class="button secondary">Visit Website</a>
+        </div>
+        <button class="button ghost" style="margin-top:12px;width:100%" onclick="onboardingDone()">Continue to App</button>
+      </div>
+
+    </div>
+  </div>
+
   <script src="auth.js"></script>
   <script src="api-client.js"></script>
   <script src="app.js"></script>

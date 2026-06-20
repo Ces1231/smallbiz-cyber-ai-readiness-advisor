@@ -196,3 +196,121 @@ footer{padding:28px 6vw;border-top:1px solid var(--border);display:flex;justify-
 .tier-badge.free { background: rgba(255,255,255,.08); color: var(--muted); }
 .tier-badge.pro { background: linear-gradient(135deg, rgba(34,211,238,.2), rgba(96,165,250,.2)); color: var(--cyan); border: 1px solid rgba(34,211,238,.3); }
 .button.small { padding: 6px 14px; font-size: 13px; }
+
+/* ── Modal Box Base (SPRINT-005) ─────────────────────────────────────────── */
+.modal-box {
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.button.ghost {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 14px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+.button.ghost:hover { color: var(--text); }
+
+/* ── Onboarding Gate Modal (SPRINT-005) ─────────────────────────────────── */
+.onboarding-modal {
+  max-width: 540px;
+  width: 90%;
+}
+
+.onboarding-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.onboarding-panel h2 {
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.modal-btn-row .button {
+  flex: 1;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+  text-decoration: underline;
+  align-self: flex-start;
+}
+
+.link-btn:hover { color: var(--text); }
+
+/* Champtron Info Panel */
+.champ-header { text-align: center; }
+.champ-header h2 { color: var(--cyan); margin: 0 0 6px; }
+.champ-tagline {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 4px 0;
+}
+.champ-about {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+.champ-services .label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.champ-service-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.service-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  color: var(--cyan);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.champ-contact p {
+  color: var(--text);
+  font-size: 0.875rem;
+  margin: 6px 0;
+}
+.champ-contact a { color: var(--cyan); }
+
+.startup-notice { animation: fadeIn 0.3s ease; }

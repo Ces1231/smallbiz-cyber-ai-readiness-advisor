@@ -11,18 +11,19 @@ import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
 export function HomeScreen({ navigation }: any) {
-  const { user, token, pendingStartupRedirect, setPendingStartupRedirect } = useAuthStore();
+  const { user, token, pendingRoute, setPendingRoute } = useAuthStore();
   const [lastAssessment, setLastAssessment] = useState<AssessmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Redirect to startup flow if user authenticated via "Starting a Business"
+  // Consume pendingRoute set by OnboardingGateScreen and deep-route the user
   useEffect(() => {
-    if (pendingStartupRedirect) {
-      setPendingStartupRedirect(false);
-      navigation.navigate('StartupStep1');
+    if (pendingRoute) {
+      const route = pendingRoute;
+      setPendingRoute(null);
+      navigation.navigate(route as any);
     }
-  }, [pendingStartupRedirect]);
+  }, [pendingRoute]);
 
   const fetchAssessments = useCallback(() => {
     if (!token) return;
@@ -89,13 +90,6 @@ export function HomeScreen({ navigation }: any) {
           onPress={() => navigation.navigate('AssessmentForm')}
           style={styles.cta}
         />
-
-        <Button
-          title="Starting a Business?"
-          variant="secondary"
-          onPress={() => navigation.navigate('StartupStep1')}
-          style={styles.startupBtn}
-        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -115,5 +109,4 @@ const styles = StyleSheet.create({
   scoreLevel: { color: colors.cyan, fontSize: typography.sizes.sm },
   date: { color: colors.muted, fontSize: typography.sizes.sm, marginTop: 4 },
   cta: { marginTop: 8 },
-  startupBtn: { marginTop: 4 },
 });
