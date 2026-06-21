@@ -1,12 +1,12 @@
 # Project State
-_Last updated: 2026-06-17 by jarvis_
+_Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — complete)_
 
 ## Meta
 - **project:** smallbiz-cyber-ai-readiness-advisor
 - **state_mode:** single
 - **version:** 0.1.0
-- **last_updated:** 2026-06-17
-- **last_updated_by:** jarvis
+- **last_updated:** 2026-06-21
+- **last_updated_by:** iron-man
 - **language:** python (backend) + vanilla js (frontend)
 - **python_version:** 3.11+
 - **stack:** FastAPI + Supabase + Vercel (frontend) + Railway (backend)
@@ -82,6 +82,31 @@ _Last updated: 2026-06-17 by jarvis_
 | billing.py | `/billing` | POST /checkout, POST /portal, GET /subscription, POST /webhook |
 | admin.py | `/admin` | GET /metrics, GET /users |
 
+## Mobile Screens (Sprint 005 additions)
+
+| Screen | Path | Route Name | Stack |
+|--------|------|------------|-------|
+| OnboardingGateScreen | `mobile/src/screens/onboarding/OnboardingGateScreen.tsx` | `OnboardingGate` | RootNavigator (top-level) |
+| ChampInfoScreen | `mobile/src/screens/ChampInfoScreen.tsx` | `ChampInfo` | AppStackParamList |
+
+## Mobile AuthStore Shape (Sprint 005)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| onboardingComplete | boolean | In-memory mirror of AsyncStorage `onboardingComplete` |
+| pendingRoute | `'AssessmentForm' \| 'StartupStep1' \| 'ChampInfo' \| null` | Set by OnboardingGateScreen; consumed by HomeScreen |
+| setOnboardingComplete | function | Sets `onboardingComplete` — triggers RootNavigator re-render |
+| setPendingRoute | function | Sets `pendingRoute` for deep routing after gate |
+
+**Removed in Sprint 005:** `pendingStartupRedirect`, `setPendingStartupRedirect`
+
+## AsyncStorage / localStorage Keys
+
+| Key | Platform | Value | Purpose |
+|-----|----------|-------|---------|
+| `onboardingComplete` | Mobile (AsyncStorage) | `'true'` | Gate shows once per device |
+| `onboardingComplete` | Web (localStorage) | `'true'` | Gate shows once per browser |
+
 ## Handler Map
 
 | Handler File | Packages / Features |
@@ -93,6 +118,9 @@ _Last updated: 2026-06-17 by jarvis_
 | `backend/routers/billing.py` | Stripe checkout, webhooks, portal |
 | `backend/routers/profiles.py` | User profile + tier reads |
 | `backend/routers/admin.py` | Admin-only aggregate metrics |
+| `backend/routers/business.py` | Dream-to-Launch Builder — quiz, ideas, plans, advisor requests (SPRINT-006) |
+| `backend/prompts_dream.py` | AI prompt functions for dream builder (SPRINT-006) |
+| `backend/pdf_generator.py` | Business plan PDF generation via weasyprint (SPRINT-006) |
 
 ## Database Schema
 
@@ -151,7 +179,66 @@ _Last updated: 2026-06-17 by jarvis_
 | current_period_start/end | TIMESTAMPTZ | |
 | cancel_at_period_end | BOOLEAN | |
 
-**Latest migration:** 20260617160000 (all 5 migrations planned but not yet run)
+### business_ideas (SPRINT-006)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | gen_random_uuid() |
+| user_id | UUID FK | → auth.users(id) ON DELETE CASCADE |
+| skills | TEXT[] | multi-select quiz answer |
+| problems | TEXT[] | multi-select quiz answer |
+| business_type | TEXT | service / product / online / local |
+| starting_capital | TEXT | <500 / 500-2k / 2k-10k / 10k+ |
+| weekly_hours | TEXT | <5 / 5-15 / 15-30 / 30+ |
+| ai_suggestions | JSONB | array of 3 idea objects |
+| selected_idea_index | INTEGER | 0, 1, or 2 |
+| business_fit_pct | INTEGER | 0–100 |
+| startup_cost_tier | TEXT | Low / Medium / High |
+| difficulty_tier | TEXT | Easy / Medium / Hard |
+| revenue_potential | TEXT | Low / Medium / Medium to High / High |
+| mission_statement | TEXT | full AI-generated text |
+| status | TEXT | draft / saved / archived |
+| created_at, updated_at | TIMESTAMPTZ | auto |
+
+### launch_plans (SPRINT-006)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| user_id | UUID FK | → auth.users |
+| business_idea_id | UUID FK | → business_ideas |
+| tier | TEXT | launch_builder / launch_packet_pro |
+| checklist, cost_calculator, pricing_packages, thirty_day_plan | JSONB | launch_builder content |
+| business_plan_text | TEXT | pro only |
+| mission_vision, customer_persona, funding_checklist, cyber_ai_checklist, ninety_day_roadmap | TEXT/JSONB | pro only |
+| pdf_url | TEXT | Supabase Storage URL |
+| UNIQUE | (business_idea_id, tier) | one plan per idea per tier |
+
+### purchases (SPRINT-006)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| user_id | UUID FK | → auth.users |
+| product_key | TEXT | launch_builder / launch_packet_pro / advisor_review |
+| stripe_payment_intent_id | TEXT UNIQUE | idempotency key |
+| stripe_customer_id | TEXT | |
+| amount_cents | INTEGER | 1900 / 4900 / 14900 |
+| currency | TEXT | usd |
+| status | TEXT | pending / completed / refunded / failed |
+| purchased_at | TIMESTAMPTZ | set on webhook confirmation |
+
+### advisor_requests (SPRINT-006)
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| user_id | UUID FK | → auth.users |
+| business_idea_id | UUID FK | → business_ideas, nullable |
+| purchase_id | UUID FK | → purchases, nullable |
+| user_email | TEXT | copied at request time |
+| business_name | TEXT | nullable |
+| status | TEXT | pending / scheduled / completed / cancelled |
+| notes | TEXT | admin-only |
+| scheduled_at | TIMESTAMPTZ | nullable |
+
+**Latest migration:** 20260621130000 (SPRINT-006 — 4 new tables)
 **Migration tool:** Supabase CLI (`supabase db push`)
 **Migration directory:** `supabase/migrations/`
 
@@ -203,7 +290,7 @@ _Last updated: 2026-06-17 by jarvis_
 
 | Prefix | Last Used |
 |--------|-----------|
-| SPRINT | 003 |
+| SPRINT | 006 |
 | FEAT | 000 |
 | TASK | 000 |
 | BUG | 000 |
@@ -216,3 +303,6 @@ _Last updated: 2026-06-17 by jarvis_
 | SPRINT-001 | 2026-06-17 | SaaS MVP — Auth, Persistence & User Dashboard | backend/, auth.js, api-client.js, supabase/ | pending |
 | SPRINT-002 | 2026-06-17 | AI Advisor — Provider-Agnostic Advice Engine with Streaming | backend/ai/, backend/prompts.py, backend/routers/ai.py | pending |
 | SPRINT-003 | 2026-06-17 | Billing — Stripe Subscriptions, Free Tier Enforcement & Admin Dashboard | backend/routers/billing.py, backend/routers/admin.py, admin.html | pending |
+| SPRINT-005 | 2026-06-19 | Onboarding Gate — Sequential Q1/Q2 Post-Login Flow (Web + Mobile) | mobile/src/screens/onboarding/OnboardingGateScreen.tsx, mobile/src/screens/ChampInfoScreen.tsx, mobile/src/navigation/AuthNavigator.tsx, mobile/src/navigation/AppNavigator.tsx, mobile/src/navigation/RootNavigator.tsx, mobile/src/store/authStore.ts, mobile/src/screens/HomeScreen.tsx, mobile/src/screens/auth/LoginScreen.tsx, mobile/src/screens/auth/SignupScreen.tsx, app.js, index.html, styles.css | specified |
+| SPRINT-005-ARCH | 2026-06-19 | ARCHIVED: Existing Business Assessment Path — Mobile (superseded by SPRINT-005 onboarding gate; content deferred to SPRINT-006) | — | archived |
+| SPRINT-006 | 2026-06-21 | SmallBiz Dream-to-Launch Builder — Q2 new business path (quiz, AI ideas, tiered plans, one-time billing) | backend/routers/business.py, backend/schemas/business.py, backend/prompts_dream.py, backend/pdf_generator.py, backend/routers/billing.py (extended), backend/dependencies.py (extended), supabase/migrations/ (4 new), dream-builder.html, dream-builder.js, styles.css, app.js, mobile/src/screens/dream/, mobile/src/api/business.ts, mobile/src/navigation/AppNavigator.tsx, mobile/src/store/authStore.ts | complete |
