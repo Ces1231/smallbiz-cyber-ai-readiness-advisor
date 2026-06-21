@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dream-to-Launch Builder — SmallBiz Advisor</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://js.stripe.com/v3/" defer></script>
+</head>
+<body class="db-page">
+
+  <script>
+    // Inline auth guard — redirect to index.html if not logged in
+    (function() {
+      var token = sessionStorage.getItem('sb_access_token') || (window._authToken || null);
+      if (!token) {
+        // Small delay to let auth.js set window._authToken if it loaded before this
+        setTimeout(function() {
+          if (!window._authToken && !sessionStorage.getItem('sb_access_token')) {
+            window.location.href = 'index.html?redirect=dream-builder';
+          }
+        }, 100);
+      }
+    })();
+    // Stripe publishable key (safe to expose — never the secret key)
+    window.STRIPE_PUBLISHABLE_KEY = 'pk_test_placeholder';
+  </script>
+
+  <nav class="db-nav">
+    <a href="index.html" class="db-nav-logo">SmallBiz Advisor</a>
+    <span class="db-nav-title">Dream-to-Launch Builder</span>
+    <button id="dbNavLogout" class="button ghost small" onclick="dbLogout()">Sign Out</button>
+  </nav>
+
+  <div class="db-layout">
+
+    <!-- Sidebar: progress tracker -->
+    <aside class="db-sidebar" id="dbSidebar">
+      <h3 class="db-sidebar-title">Your Progress</h3>
+      <ul class="db-steps-list" id="dbStepsList">
+        <!-- Populated by JS -->
+      </ul>
+      <div class="db-upgrade-cta" id="dbUpgradeCta">
+        <button class="button primary full-width" onclick="showUpgradeModal('launch_packet_pro')">
+          Unlock Full Launch Packet — $49
+        </button>
+        <button class="button secondary full-width" style="margin-top:8px" onclick="showUpgradeModal('advisor_review')">
+          Book Advisor Review — $149
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="db-main" id="dbMain">
+
+      <!-- ── Section: Quiz ─────────────────────────────────────── -->
+      <section id="dbSectionQuiz" class="db-section active">
+        <div class="db-quiz-card">
+          <div class="db-quiz-progress" id="dbQuizProgress">
+            <div class="db-quiz-dot done" id="dbDot1"></div>
+            <div class="db-quiz-dot" id="dbDot2"></div>
+            <div class="db-quiz-dot" id="dbDot3"></div>
+            <div class="db-quiz-dot" id="dbDot4"></div>
+            <div class="db-quiz-dot" id="dbDot5"></div>
+          </div>
+          <div id="dbQuizContent">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="db-quiz-nav" style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+            <button id="dbQuizBack" class="button ghost" onclick="handleQuizBack()" style="display:none;">Back</button>
+            <button id="dbQuizNext" class="button primary" onclick="handleQuizNext()">Next</button>
+          </div>
+          <div id="dbQuizError" class="db-error" style="display:none; margin-top:8px;"></div>
+        </div>
+      </section>
+
+      <!-- ── Section: Results ─────────────────────────────────── -->
+      <section id="dbSectionResults" class="db-section hidden">
+        <h2 class="db-section-title">Your Business Ideas</h2>
+        <p class="db-section-sub" style="color:var(--muted); margin-bottom:20px;">
+          Based on your answers, here are 3 business ideas tailored to your skills and goals.
+        </p>
+        <div id="dbIdeaCards">
+          <!-- 3 idea cards rendered by JS -->
+        </div>
+        <div class="db-mission-box" style="margin-top:24px;">
+          <h3 style="color:var(--cyan); margin-bottom:8px; font-size:1rem;">Your Mission Preview</h3>
+          <p id="dbMissionPreviewText" style="color:var(--text); line-height:1.6;"></p>
+          <div class="db-locked-item" style="margin-top:8px;">
+            <p style="color:var(--muted);">Your business has a clear and inspiring direction that resonates with your community and creates meaningful impact through thoughtful service delivery and commitment to excellence...</p>
+          </div>
+          <div class="db-lock-overlay" style="margin-top:4px;">
+            <span>&#128274;</span>
+            <span style="color:var(--muted); font-size:0.8rem;">Full mission statement unlocked with Launch Packet Pro — $49</span>
+          </div>
+        </div>
+        <div style="margin-top:24px;">
+          <button class="button primary" id="dbSaveIdeaBtn" onclick="saveSelectedIdea()" style="min-width:200px;">
+            Save This Idea &amp; See Your Plan
+          </button>
+          <span id="dbSaveIdeaError" class="db-error" style="display:none; margin-left:12px;"></span>
+        </div>
+      </section>
+
+      <!-- ── Section: Plan Preview (free) ─────────────────────── -->
+      <section id="dbSectionPlanPreview" class="db-section hidden">
+        <h2 class="db-section-title" id="dbPlanPreviewTitle">Your Launch Plan</h2>
+        <div id="dbPlanPreviewIdeaCard" style="margin-bottom:24px;">
+          <!-- Idea summary card rendered by JS -->
+        </div>
+
+        <div class="db-plan-block">
+          <h3 class="db-block-title">&#9989; Starter Checklist <span class="db-badge-free">Free</span></h3>
+          <ul class="db-checklist" id="dbFreeChecklist">
+            <li class="db-checklist-item"><span class="db-check">&#10003;</span> Choose a business name</li>
+            <li class="db-checklist-item"><span class="db-check">&#10003;</span> Register your domain</li>
+            <li class="db-checklist-item"><span class="db-check">&#10003;</span> Open a business bank account</li>
+            <li class="db-checklist-item"><span class="db-check">&#10003;</span> Set up a basic website or social media page</li>
+            <li class="db-checklist-item"><span class="db-check">&#10003;</span> Tell your first 10 potential customers</li>
+          </ul>
+          <div class="db-locked-rows">
+            <div class="db-locked-item db-lock-row"><span>&#128274;</span> Full legal &amp; setup checklist (20+ items)</div>
+            <div class="db-locked-item db-lock-row"><span>&#128274;</span> Itemized startup cost calculator</div>
+            <div class="db-locked-item db-lock-row"><span>&#128274;</span> 3 pricing packages + revenue projections</div>
+          </div>
+        </div>
+
+        <div class="db-plan-block" style="margin-top:20px;">
+          <h3 class="db-block-title">&#128648; Launch Roadmap</h3>
+          <div class="db-roadmap-phase">
+            <div class="db-phase-label">Phase 1: Foundation</div>
+            <p style="color:var(--muted); font-size:0.875rem;">Set up your business identity, register your name, open accounts, and tell your first customers.</p>
+          </div>
+          <div class="db-locked-item db-lock-row" style="margin-top:8px;"><span>&#128274;</span> Phase 2: First Sales</div>
+          <div class="db-locked-item db-lock-row" style="margin-top:6px;"><span>&#128274;</span> Phase 3: Growth</div>
+          <div class="db-locked-item db-lock-row" style="margin-top:6px;"><span>&#128274;</span> Phase 4: Scale</div>
+        </div>
+
+        <div class="db-upgrade-block" style="margin-top:32px;">
+          <button class="button primary" onclick="showUpgradeModal('launch_builder')" style="margin-right:12px;">
+            Unlock Full Launch Builder — $19
+          </button>
+          <button class="button secondary" onclick="showUpgradeModal('launch_packet_pro')">
+            Unlock Launch Packet Pro — $49
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Section: Full Plan (launch_builder paid) ─────────── -->
+      <section id="dbSectionPlan" class="db-section hidden">
+        <h2 class="db-section-title">Full Launch Plan</h2>
+        <div id="dbFullPlanContent">
+          <div class="db-loading" id="dbFullPlanLoading" style="display:none;">
+            <span>Generating your personalized launch plan...</span>
+          </div>
+          <!-- Plan sections rendered by JS -->
+        </div>
+      </section>
+
+      <!-- ── Section: Pro Plan (launch_packet_pro paid) ───────── -->
+      <section id="dbSectionProPlan" class="db-section hidden">
+        <h2 class="db-section-title">Launch Packet Pro</h2>
+        <div id="dbProPlanContent">
+          <div class="db-loading" id="dbProPlanLoading" style="display:none;">
+            <span>Generating your full business plan...</span>
+          </div>
+          <!-- Pro plan sections rendered by JS -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ── Upgrade Modal ─────────────────────────────────────────── -->
+  <div id="dbUpgradeModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box db-upgrade-modal">
+      <h2 id="dbUpgradeTitle">Unlock Full Launch Packet</h2>
+      <p id="dbUpgradeDesc" style="color:var(--muted); margin:8px 0 16px;"></p>
+      <div id="dbUpgradeFeatures" style="margin-bottom:16px;"></div>
+      <div id="dbPaymentElement" style="min-height:60px;"></div>
+      <div id="dbUpgradeError" class="db-error" style="display:none; margin-top:8px;"></div>
+      <div id="dbUpgradeSuccess" style="display:none; color:var(--green); margin-top:8px; font-weight:600;">
+        Payment successful! Loading your content...
+      </div>
+      <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
+        <button class="button ghost" onclick="hideUpgradeModal()">Cancel</button>
+        <button class="button primary" id="dbPayBtn" onclick="handlePayment()">Pay Now</button>
+      </div>
+      <div id="dbPayLoading" style="display:none; margin-top:8px; color:var(--muted); font-size:0.875rem;">
+        Processing payment...
+      </div>
+    </div>
+  </div>
+
+  <script>window.STRIPE_PUBLISHABLE_KEY = window.STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder';</script>
+  <script src="api-client.js"></script>
+  <script src="auth.js"></script>
+  <script src="dream-builder.js"></script>
+</body>
+</html>

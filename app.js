@@ -98,7 +98,9 @@ document.getElementById("assessmentForm").addEventListener("submit", (e)=>{
 function renderResults(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall){
   latestData = data;
   latestScores = { cyberScoreVal, aiScoreVal, fundingScoreVal, overall };
-  document.getElementById("results").classList.remove("hidden");
+  const resultsEl = document.getElementById("results");
+  resultsEl.classList.remove("hidden");
+  resultsEl.style.display = 'block';
   cyberBar.style.width = `${cyberScoreVal}%`;
   aiBar.style.width = `${aiScoreVal}%`;
   fundingBar.style.width = `${fundingScoreVal}%`;
@@ -898,8 +900,8 @@ async function loadHistoricalAssessment(id) {
     if (industryEl && assessment.industry) industryEl.value = assessment.industry;
     const challengeEl = document.getElementById('challenge');
     if (challengeEl && assessment.challenge) challengeEl.value = assessment.challenge;
-    // Re-run the analysis with historical data
-    analyze();
+    // Re-run the analysis with the loaded historical data
+    document.getElementById('assessmentForm').dispatchEvent(new Event('submit'));
     document.getElementById('assessment')?.scrollIntoView({ behavior: 'smooth' });
   } catch (err) {
     console.error('Failed to load historical assessment:', err);
@@ -933,33 +935,24 @@ if (typeof Auth !== 'undefined') {
     if (loggedIn) {
       loadAssessmentHistory();
       checkTierAndShowUpgrade();
-      if (shouldShowOnboarding()) {
-        // Small delay to let the UI settle after login
-        setTimeout(showOnboardingModal, 300);
-      }
+      // Show onboarding gate on every login — no localStorage gate
+      setTimeout(showOnboardingModal, 300);
     }
   });
 }
 
 // ── Onboarding Gate (SPRINT-005) ─────────────────────────────────────────────
 
-var ONBOARDING_KEY = 'onboardingComplete';
-
-function shouldShowOnboarding() {
-  return localStorage.getItem(ONBOARDING_KEY) !== 'true';
-}
-
-function markOnboardingComplete() {
-  localStorage.setItem(ONBOARDING_KEY, 'true');
+function _obPanel(showId) {
+  ['onboardingQ1','onboardingQ2','onboardingNewBiz','onboardingChamp'].forEach(function(id) {
+    document.getElementById(id).classList.toggle('hidden', id !== showId);
+  });
 }
 
 function showOnboardingModal() {
   var modal = document.getElementById('onboardingModal');
   if (!modal) return;
-  // Reset to Q1 state
-  document.getElementById('onboardingQ1').classList.remove('hidden');
-  document.getElementById('onboardingQ2').classList.add('hidden');
-  document.getElementById('onboardingChamp').classList.add('hidden');
+  _obPanel('onboardingQ1');
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
 }
@@ -971,51 +964,37 @@ function hideOnboardingModal() {
   modal.setAttribute('aria-hidden', 'true');
 }
 
+// Q1: Yes → go straight to assessment
 window.onboardingQ1Yes = function() {
-  // Existing business path — dismiss modal, stay on assessment
-  markOnboardingComplete();
   hideOnboardingModal();
-  // Scroll to assessment section (current flow)
-  var assessment = document.getElementById('assessment');
-  if (assessment) assessment.scrollIntoView({ behavior: 'smooth' });
+  var el = document.getElementById('assessment');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
 };
 
-window.onboardingQ1No = function() {
-  // Show Q2
-  document.getElementById('onboardingQ1').classList.add('hidden');
-  document.getElementById('onboardingQ2').classList.remove('hidden');
-};
+// Q1: No → show Q2
+window.onboardingQ1No = function() { _obPanel('onboardingQ2'); };
 
-window.onboardingBack = function() {
-  // Back to Q1
-  document.getElementById('onboardingQ2').classList.add('hidden');
-  document.getElementById('onboardingQ1').classList.remove('hidden');
-};
+// Q2: Back → Q1
+window.onboardingQ2Back = function() { _obPanel('onboardingQ1'); };
 
+// Q2: Yes → Dream-to-Launch Builder (new business path)
 window.onboardingQ2Yes = function() {
-  // Startup path — show placeholder (startup web path not yet built)
   markOnboardingComplete();
   hideOnboardingModal();
-  var notice = document.createElement('div');
-  notice.className = 'startup-notice';
-  notice.innerHTML = '<div class="panel" style="margin:24px auto;max-width:600px;padding:24px;text-align:center"><h3 style="color:var(--green)">Starting a Business?</h3><p class="muted">Our guided startup assessment is coming soon on web. In the meantime, try the <strong>SmallBiz Advisor mobile app</strong> (Expo Go) for the full startup readiness assessment.</p></div>';
-  var nav = document.querySelector('nav');
-  if (nav) nav.after(notice);
-  notice.scrollIntoView({ behavior: 'smooth' });
+  window.location.href = 'dream-builder.html';
 };
 
-window.onboardingQ2No = function() {
-  // Show Champtron info panel inside the modal
-  document.getElementById('onboardingQ2').classList.add('hidden');
-  document.getElementById('onboardingChamp').classList.remove('hidden');
-  // markOnboardingComplete is called on "Continue to App"
-};
+// Q2: No → Champtron info
+window.onboardingQ2No = function() { _obPanel('onboardingChamp'); };
 
-window.onboardingDone = function() {
-  // Dismiss Champtron panel
-  markOnboardingComplete();
-  hideOnboardingModal();
-};
+// New biz: Back → Q2
+window.onboardingNewBizBack = function() { _obPanel('onboardingQ2'); };
+
+// Champtron: Back → Q2
+window.onboardingChampBack = function() { _obPanel('onboardingQ2'); };
+
+// Close modal (used by "Continue to App" and "Got it" buttons)
+window.onboardingDone = function() { hideOnboardingModal(); };
 
 // ── Billing UI (SPRINT-003) ───────────────────────────────────────────────────
 
