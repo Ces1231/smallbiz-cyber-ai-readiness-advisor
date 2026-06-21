@@ -108,7 +108,7 @@ services:
       SUPABASE_URL: http://gateway:9000
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       SUPABASE_ANON_KEY: ${ANON_KEY}
-      ALLOWED_ORIGINS: http://localhost
+      ALLOWED_ORIGINS: http://localhost,http://192.168.1.154
       APP_ENV: local
       LOG_LEVEL: INFO
       # ── AI provider (ollama = local Jetson GPU; nvidia = NVIDIA NIM cloud) ──

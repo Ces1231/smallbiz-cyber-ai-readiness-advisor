@@ -43,6 +43,34 @@ def _purchase_required(product_key: str):
     return _check
 
 
+_FALLBACK_BY_TYPE = {
+    "service": [
+        {"name": "Mobile Tech Setup Service", "description": "Help small businesses set up computers, networks, and software on-site.", "business_fit_pct": 82, "startup_cost_tier": "Low", "difficulty_tier": "Medium", "revenue_potential": "Medium to High"},
+        {"name": "Virtual Assistant Agency", "description": "Provide remote admin, scheduling, and communications support to busy professionals.", "business_fit_pct": 75, "startup_cost_tier": "Low", "difficulty_tier": "Easy", "revenue_potential": "Medium"},
+        {"name": "Home & Business Cleaning Service", "description": "Offer professional cleaning services for homes and small commercial spaces.", "business_fit_pct": 70, "startup_cost_tier": "Low", "difficulty_tier": "Easy", "revenue_potential": "Medium"},
+    ],
+    "product": [
+        {"name": "Handmade Craft & Goods Shop", "description": "Sell handmade or curated physical products online and at local markets.", "business_fit_pct": 74, "startup_cost_tier": "Low", "difficulty_tier": "Medium", "revenue_potential": "Medium"},
+        {"name": "Digital Product Store", "description": "Create and sell downloadable templates, guides, or digital tools in your area of expertise.", "business_fit_pct": 80, "startup_cost_tier": "Low", "difficulty_tier": "Medium", "revenue_potential": "Medium to High"},
+        {"name": "Specialty Food & Beverage Brand", "description": "Package and sell a specialty food or beverage product at farmers markets and online.", "business_fit_pct": 68, "startup_cost_tier": "Medium", "difficulty_tier": "Hard", "revenue_potential": "Medium"},
+    ],
+    "online": [
+        {"name": "Freelance Content & Copywriting", "description": "Write blog posts, social media content, and marketing copy for businesses online.", "business_fit_pct": 79, "startup_cost_tier": "Low", "difficulty_tier": "Easy", "revenue_potential": "Medium to High"},
+        {"name": "Online Coaching or Consulting", "description": "Offer one-on-one or group coaching sessions in your area of expertise via video call.", "business_fit_pct": 83, "startup_cost_tier": "Low", "difficulty_tier": "Medium", "revenue_potential": "High"},
+        {"name": "Social Media Management Agency", "description": "Manage social media accounts and content calendars for small business clients.", "business_fit_pct": 76, "startup_cost_tier": "Low", "difficulty_tier": "Medium", "revenue_potential": "Medium to High"},
+    ],
+    "local": [
+        {"name": "Mobile Pet Grooming Service", "description": "Provide professional pet grooming at customers' homes with a mobile setup.", "business_fit_pct": 72, "startup_cost_tier": "Medium", "difficulty_tier": "Medium", "revenue_potential": "Medium to High"},
+        {"name": "Lawn & Landscape Care", "description": "Offer lawn mowing, trimming, and basic landscaping services in your neighborhood.", "business_fit_pct": 78, "startup_cost_tier": "Low", "difficulty_tier": "Easy", "revenue_potential": "Medium"},
+        {"name": "Local Delivery & Errand Service", "description": "Run errands, deliver packages, and handle tasks for busy local residents and businesses.", "business_fit_pct": 69, "startup_cost_tier": "Low", "difficulty_tier": "Easy", "revenue_potential": "Medium"},
+    ],
+}
+
+
+def _fallback_suggestions(business_type: str, skills: list[str]) -> list[dict]:
+    return _FALLBACK_BY_TYPE.get(business_type, _FALLBACK_BY_TYPE["service"])
+
+
 def _sentences(text: str, n: int = 2) -> str:
     """Return the first n sentences of a text block."""
     import re
@@ -95,11 +123,8 @@ async def submit_quiz(
     try:
         suggestions = await generate_idea_suggestions(quiz_data)
     except RuntimeError as exc:
-        log.error("quiz_ai_error", user_id=user_id, error=str(exc))
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={"error": "ai_unavailable", "message": "AI service temporarily unavailable.", "details": {}},
-        )
+        log.warning("quiz_ai_fallback", user_id=user_id, reason=str(exc))
+        suggestions = _fallback_suggestions(body.business_type, body.skills)
 
     # Generate mission statement from first suggestion
     try:
