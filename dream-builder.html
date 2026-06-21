@@ -192,7 +192,11 @@
     </div>
   </div>
 
-  <script>window.STRIPE_PUBLISHABLE_KEY = window.STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder';</script>
+  <script src="config.js"></script>
+  <script>
+    window.STRIPE_PUBLISHABLE_KEY = window.STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder';
+    window.API_BASE_URL = window.ADVISOR_API_URL || '';
+  </script>
   <script src="api-client.js"></script>
   <script src="auth.js"></script>
   <script src="dream-builder.js"></script>

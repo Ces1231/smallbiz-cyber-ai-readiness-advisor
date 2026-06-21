@@ -4,11 +4,23 @@
 
 const Auth = (() => {
     const API_BASE = window.ADVISOR_API_URL || 'http://localhost:8000';
+    const SESSION_KEY = 'sb_access_token';
 
-    // In-memory only — never persisted to localStorage or sessionStorage.
-    let _token = null;
+    // Primary store is in-memory. sessionStorage bridges cross-page navigation
+    // (e.g. index.html → dream-builder.html). Cleared on logout and on tab close.
+    let _token = sessionStorage.getItem(SESSION_KEY) || null;
     let _user = null;
     const _listeners = [];
+
+    function _setToken(token, user) {
+        _token = token;
+        _user = user;
+        if (token) {
+            sessionStorage.setItem(SESSION_KEY, token);
+        } else {
+            sessionStorage.removeItem(SESSION_KEY);
+        }
+    }
 
     function _notify() {
         _listeners.forEach(cb => {
@@ -29,8 +41,7 @@ const Auth = (() => {
         }
         // Auto-confirm environments return a session token immediately — log the user in.
         if (data.access_token) {
-            _token = data.access_token;
-            _user = { id: data.user_id, email: data.email };
+            _setToken(data.access_token, { id: data.user_id, email: data.email });
             _notify();
         }
         return data;
@@ -47,8 +58,7 @@ const Auth = (() => {
             const msg = data.message || data.detail?.message || 'Login failed.';
             throw Object.assign(new Error(msg), { status: res.status, data });
         }
-        _token = data.access_token;
-        _user = data.user;
+        _setToken(data.access_token, data.user);
         _notify();
         return data;
     }
@@ -66,8 +76,7 @@ const Auth = (() => {
         } catch (e) {
             // Best-effort — always clear local state
         }
-        _token = null;
-        _user = null;
+        _setToken(null, null);
         _notify();
     }
 
