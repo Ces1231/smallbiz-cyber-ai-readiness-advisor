@@ -14,7 +14,7 @@ interface AuthState {
   /** In-memory mirror of AsyncStorage 'onboardingComplete'. Set by RootNavigator on init. */
   onboardingComplete: boolean;
   /** Deep-route target set by OnboardingGateScreen; consumed and cleared by HomeScreen. */
-  pendingRoute: 'AssessmentForm' | 'StartupStep1' | 'ChampInfo' | null;
+  pendingRoute: 'AssessmentForm' | 'StartupStep1' | 'DreamBuilderQuiz' | 'ChampInfo' | null;
 
   // Actions
   initialize: () => Promise<void>;
@@ -24,7 +24,7 @@ interface AuthState {
   setIsPaid: (paid: boolean) => void;
   clearError: () => void;
   setOnboardingComplete: (val: boolean) => void;
-  setPendingRoute: (route: 'AssessmentForm' | 'StartupStep1' | 'ChampInfo' | null) => void;
+  setPendingRoute: (route: 'AssessmentForm' | 'StartupStep1' | 'DreamBuilderQuiz' | 'ChampInfo' | null) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
