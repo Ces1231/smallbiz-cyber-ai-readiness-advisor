@@ -24,3 +24,20 @@ class SubscriptionResponse(BaseModel):
     current_period_end: Optional[datetime] = None
     cancel_at_period_end: Optional[bool] = None
     price_id: Optional[str] = None
+
+
+class OneTimeCheckoutRequest(BaseModel):
+    product_key: Literal["launch_builder", "launch_packet_pro", "advisor_review"]
+
+
+class OneTimeCheckoutResponse(BaseModel):
+    client_secret: str
+    payment_intent_id: str
+    amount_cents: int
+    product_key: str
+
+
+class PurchasesStatusResponse(BaseModel):
+    launch_builder: bool = False
+    launch_packet_pro: bool = False
+    advisor_review: bool = False

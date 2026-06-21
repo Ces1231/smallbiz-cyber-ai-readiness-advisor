@@ -64,3 +64,51 @@ async def get_token(
 ) -> str:
     """Returns the raw Bearer token string for endpoints that need to pass it to Supabase admin."""
     return credentials.credentials
+
+
+async def require_purchase(
+    product_key: str,
+    current_user: dict,
+    supabase: Client,
+) -> dict:
+    """
+    Verifies the current user has a completed purchase for the given product_key.
+    launch_packet_pro access also satisfies launch_builder (pro is a superset).
+    Raises HTTP 402 if no valid purchase found.
+    """
+    user_id = current_user["id"]
+    keys_to_check = [product_key]
+    if product_key == "launch_builder":
+        keys_to_check.append("launch_packet_pro")
+
+    try:
+        result = (
+            supabase.table("purchases")
+            .select("id, product_key")
+            .eq("user_id", user_id)
+            .in_("product_key", keys_to_check)
+            .eq("status", "completed")
+            .limit(1)
+            .execute()
+        )
+    except Exception as exc:
+        log.error("require_purchase_db_error", user_id=user_id, product_key=product_key, error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "error": "purchase_required",
+                "message": "A purchase is required to access this content.",
+                "details": {"product_key": product_key},
+            },
+        )
+
+    if not result.data:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "error": "purchase_required",
+                "message": "A purchase is required to access this content.",
+                "details": {"product_key": product_key},
+            },
+        )
+    return current_user

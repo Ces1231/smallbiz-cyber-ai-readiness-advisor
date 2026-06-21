@@ -61,6 +61,7 @@ def create_app() -> FastAPI:
     from backend.routers.profiles import router as profiles_router
     from backend.routers.billing import router as billing_router
     from backend.routers.admin import router as admin_router
+    from backend.routers.business import router as business_router
 
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
     app.include_router(assessments_router, prefix="/assessments", tags=["assessments"])
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(profiles_router, prefix="/profiles", tags=["profiles"])
     app.include_router(billing_router, prefix="/billing", tags=["billing"])
     app.include_router(admin_router, prefix="/admin", tags=["admin"])
+    app.include_router(business_router, prefix="/business", tags=["business"])
 
     @app.get("/health", tags=["health"])
     async def health_check() -> dict:

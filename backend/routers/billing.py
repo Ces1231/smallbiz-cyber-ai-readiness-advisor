@@ -16,7 +16,10 @@ from backend.dependencies import get_current_user, get_supabase_client
 from backend.schemas.billing import (
     CheckoutRequest,
     CheckoutResponse,
+    OneTimeCheckoutRequest,
+    OneTimeCheckoutResponse,
     PortalResponse,
+    PurchasesStatusResponse,
     SubscriptionResponse,
 )
 
@@ -27,6 +30,18 @@ log = structlog.get_logger()
 _PRICE_ALIASES = {
     "price_monthly": settings.stripe_price_id_monthly,
     "price_yearly":  settings.stripe_price_id_yearly,
+}
+
+_ONE_TIME_PRICE_ALIASES = {
+    "launch_builder":     settings.stripe_price_id_launch_builder,
+    "launch_packet_pro":  settings.stripe_price_id_launch_packet_pro,
+    "advisor_review":     settings.stripe_price_id_advisor_review,
+}
+
+_ONE_TIME_AMOUNTS = {
+    "launch_builder":     1900,
+    "launch_packet_pro":  4900,
+    "advisor_review":     14900,
 }
 
 
@@ -475,3 +490,216 @@ async def _on_payment_failed(invoice: dict, supabase: Client) -> None:
         log.info("subscription_past_due", subscription_id=subscription_id)
     except Exception as exc:
         log.error("payment_failed_update_error", error=str(exc), subscription_id=subscription_id)
+
+
+# ── One-time purchase endpoints ────────────────────────────────────────────────
+
+@router.get("/purchases", status_code=200)
+async def get_purchases_status(
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Return which one-time products the current user has purchased (completed)."""
+    user_id = current_user["id"]
+
+    result = {"launch_builder": False, "launch_packet_pro": False, "advisor_review": False}
+    try:
+        rows = (
+            supabase.table("purchases")
+            .select("product_key")
+            .eq("user_id", user_id)
+            .eq("status", "completed")
+            .execute()
+        )
+        for row in rows.data:
+            key = row.get("product_key")
+            if key in result:
+                result[key] = True
+        # launch_packet_pro satisfies launch_builder
+        if result["launch_packet_pro"]:
+            result["launch_builder"] = True
+    except Exception as exc:
+        log.error("purchases_status_error", user_id=user_id, error=str(exc))
+
+    return result
+
+
+@router.post("/one-time-checkout", status_code=200)
+async def create_one_time_checkout(
+    body: OneTimeCheckoutRequest,
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Create a Stripe PaymentIntent for a one-time Dream Builder product."""
+    user_id = current_user["id"]
+    user_email = current_user.get("email", "")
+    product_key = body.product_key
+
+    if product_key not in _ONE_TIME_AMOUNTS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "invalid_product", "message": "Unknown product key.", "details": {}},
+        )
+
+    # Check if already purchased
+    try:
+        existing = (
+            supabase.table("purchases")
+            .select("id")
+            .eq("user_id", user_id)
+            .eq("product_key", product_key)
+            .eq("status", "completed")
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"error": "already_purchased", "message": "You have already purchased this product.", "details": {}},
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+
+    customer_id = await _get_or_create_stripe_customer(user_id, user_email, supabase)
+
+    try:
+        client = _stripe()
+        intent = client.payment_intents.create(params={
+            "amount": _ONE_TIME_AMOUNTS[product_key],
+            "currency": "usd",
+            "customer": customer_id,
+            "metadata": {
+                "supabase_user_id": user_id,
+                "product_key": product_key,
+            },
+            "automatic_payment_methods": {"enabled": True},
+        })
+    except stripe.StripeError as exc:
+        log.error("payment_intent_create_error", user_id=user_id, product_key=product_key, error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"error": "billing_unavailable", "message": "Billing service temporarily unavailable.", "details": {}},
+        )
+
+    # Insert pending purchase row
+    try:
+        supabase.table("purchases").insert({
+            "user_id": user_id,
+            "product_key": product_key,
+            "stripe_payment_intent_id": intent.id,
+            "stripe_customer_id": customer_id,
+            "amount_cents": _ONE_TIME_AMOUNTS[product_key],
+            "currency": "usd",
+            "status": "pending",
+        }).execute()
+    except Exception as exc:
+        log.error("purchase_insert_error", user_id=user_id, error=str(exc))
+
+    log.info("one_time_checkout_created", user_id=user_id, product_key=product_key, intent_id=intent.id)
+    return {
+        "client_secret": intent.client_secret,
+        "payment_intent_id": intent.id,
+        "amount_cents": _ONE_TIME_AMOUNTS[product_key],
+        "product_key": product_key,
+    }
+
+
+@router.post("/one-time-webhook", status_code=200)
+async def handle_one_time_webhook(
+    request: Request,
+    stripe_signature: str = Header(alias="stripe-signature", default=""),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Handle Stripe webhook events for one-time payments."""
+    payload = await request.body()
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=stripe_signature,
+            secret=settings.stripe_one_time_webhook_secret,
+        )
+    except stripe.error.SignatureVerificationError:
+        log.warning("one_time_webhook_invalid_signature")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "webhook_invalid", "message": "Invalid webhook signature."},
+        )
+    except Exception as exc:
+        log.warning("one_time_webhook_parse_error", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "webhook_invalid", "message": "Malformed webhook payload."},
+        )
+
+    event_type = event["type"]
+    data = event["data"]["object"]
+    log.info("one_time_webhook_received", event_type=event_type, event_id=event["id"])
+
+    if event_type == "payment_intent.succeeded":
+        await _on_payment_intent_succeeded(data, supabase)
+    elif event_type == "payment_intent.payment_failed":
+        await _on_payment_intent_failed(data, supabase)
+    elif event_type == "charge.refunded":
+        await _on_charge_refunded(data, supabase)
+    else:
+        log.info("one_time_webhook_unhandled", event_type=event_type)
+
+    return {"received": True}
+
+
+# ── One-time webhook event handlers ───────────────────────────────────────────
+
+async def _on_payment_intent_succeeded(intent: dict, supabase: Client) -> None:
+    intent_id = intent.get("id")
+    if not intent_id:
+        return
+    try:
+        existing = (
+            supabase.table("purchases")
+            .select("id, status")
+            .eq("stripe_payment_intent_id", intent_id)
+            .single()
+            .execute()
+        )
+        if existing.data and existing.data.get("status") == "completed":
+            log.info("payment_intent_already_completed", intent_id=intent_id)
+            return
+        supabase.table("purchases").update({
+            "status": "completed",
+            "purchased_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("stripe_payment_intent_id", intent_id).execute()
+        log.info("purchase_completed", intent_id=intent_id)
+    except Exception as exc:
+        log.error("purchase_complete_error", intent_id=intent_id, error=str(exc))
+
+
+async def _on_payment_intent_failed(intent: dict, supabase: Client) -> None:
+    intent_id = intent.get("id")
+    if not intent_id:
+        return
+    try:
+        supabase.table("purchases").update({
+            "status": "failed",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("stripe_payment_intent_id", intent_id).execute()
+        log.info("purchase_failed", intent_id=intent_id)
+    except Exception as exc:
+        log.error("purchase_fail_error", intent_id=intent_id, error=str(exc))
+
+
+async def _on_charge_refunded(charge: dict, supabase: Client) -> None:
+    intent_id = charge.get("payment_intent")
+    if not intent_id:
+        return
+    try:
+        supabase.table("purchases").update({
+            "status": "refunded",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("stripe_payment_intent_id", intent_id).execute()
+        log.info("purchase_refunded", intent_id=intent_id)
+    except Exception as exc:
+        log.error("purchase_refund_error", intent_id=intent_id, error=str(exc))
