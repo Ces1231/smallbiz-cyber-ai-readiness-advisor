@@ -25,7 +25,6 @@
     "expo-haptics": "~12.8.1",
     "expo-linking": "~6.2.2",
     "expo-print": "~12.8.1",
-    "expo-router": "~3.4.8",
     "expo-secure-store": "~12.8.1",
     "expo-sharing": "~11.10.0",
     "expo-splash-screen": "~0.26.4",

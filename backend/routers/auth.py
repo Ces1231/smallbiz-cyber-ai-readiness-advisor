@@ -69,6 +69,17 @@ async def signup(
         )
 
     log.info("user_created", user_id=str(result.user.id))
+    # When GOTRUE_MAILER_AUTOCONFIRM=true the session is immediately available —
+    # return the token so the client can skip the email-confirm step.
+    if result.session and result.session.access_token:
+        return SignupResponse(
+            user_id=str(result.user.id),
+            email=result.user.email,
+            message="Account created.",
+            access_token=result.session.access_token,
+            token_type="bearer",
+            expires_in=result.session.expires_in or 3600,
+        )
     return SignupResponse(
         user_id=str(result.user.id),
         email=result.user.email,

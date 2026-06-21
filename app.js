@@ -979,7 +979,6 @@ window.onboardingQ2Back = function() { _obPanel('onboardingQ1'); };
 
 // Q2: Yes → Dream-to-Launch Builder (new business path)
 window.onboardingQ2Yes = function() {
-  markOnboardingComplete();
   hideOnboardingModal();
   window.location.href = 'dream-builder.html';
 };

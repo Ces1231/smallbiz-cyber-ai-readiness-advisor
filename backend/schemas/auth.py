@@ -35,6 +35,9 @@ class SignupResponse(BaseModel):
     user_id: str
     email: str
     message: str
+    access_token: str | None = None
+    token_type: str | None = None
+    expires_in: int | None = None
 
 
 class LoginUser(BaseModel):

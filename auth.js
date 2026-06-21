@@ -27,6 +27,12 @@ const Auth = (() => {
             const msg = data.message || data.detail?.message || 'Signup failed.';
             throw Object.assign(new Error(msg), { status: res.status, data });
         }
+        // Auto-confirm environments return a session token immediately — log the user in.
+        if (data.access_token) {
+            _token = data.access_token;
+            _user = { id: data.user_id, email: data.email };
+            _notify();
+        }
         return data;
     }
 
@@ -146,13 +152,18 @@ async function handleAuthSubmit(event) {
 
     try {
         if (_authMode === 'signup') {
-            await Auth.signup(email, password, businessName);
+            const result = await Auth.signup(email, password, businessName);
             closeAuthModal();
-            if (errEl) {
-                // Show success message briefly — user must confirm email
-                errEl.textContent = 'Account created! Check your email to confirm.';
-                errEl.style.color = 'var(--green)';
-                errEl.classList.remove('hidden');
+            if (Auth.isLoggedIn()) {
+                // Auto-confirmed (Docker/local dev) — session is live, proceed immediately.
+                refreshAuthUI();
+            } else {
+                // Email confirmation required — tell the user to check their inbox.
+                if (errEl) {
+                    errEl.textContent = 'Account created! Check your email to confirm, then log in.';
+                    errEl.style.color = 'var(--green)';
+                    errEl.classList.remove('hidden');
+                }
             }
         } else {
             await Auth.login(email, password);
@@ -178,18 +189,25 @@ function refreshAuthUI() {
     const userMenu = document.getElementById('userMenu');
     const userEmailDisplay = document.getElementById('userEmailDisplay');
     const historyPanel = document.getElementById('historyPanel');
+    const guestCta = document.getElementById('guestCta');
+    const assessment = document.getElementById('assessment');
+    const results = document.getElementById('results');
 
     if (Auth.isLoggedIn()) {
         if (authControls) authControls.style.display = 'none';
-        if (userMenu) userMenu.style.display = '';
+        if (userMenu) userMenu.style.display = 'flex';
         if (userEmailDisplay) userEmailDisplay.textContent = Auth.getUser()?.email || '';
-        if (historyPanel) historyPanel.style.display = '';
-        // Load history if the function exists (defined in app.js)
+        if (historyPanel) historyPanel.style.display = 'block';
+        if (guestCta) guestCta.style.display = 'none';
+        if (assessment) assessment.style.display = 'block';
         if (typeof loadAssessmentHistory === 'function') loadAssessmentHistory();
     } else {
-        if (authControls) authControls.style.display = '';
+        if (authControls) authControls.style.display = 'flex';
         if (userMenu) userMenu.style.display = 'none';
         if (historyPanel) historyPanel.style.display = 'none';
+        if (guestCta) guestCta.style.display = 'block';
+        if (assessment) assessment.style.display = 'none';
+        if (results) results.style.display = 'none';
         const historyList = document.getElementById('historyList');
         if (historyList) historyList.innerHTML = '';
     }

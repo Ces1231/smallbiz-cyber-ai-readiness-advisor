@@ -124,6 +124,14 @@ services:
       STRIPE_PRICE_ID_YEARLY: ${STRIPE_PRICE_ID_YEARLY:-}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost?checkout=success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost?checkout=cancel}
+      # ── Sprint-006: Dream-to-Launch one-time purchase Stripe price IDs ──
+      STRIPE_PRICE_ID_LAUNCH_BUILDER: ${STRIPE_PRICE_ID_LAUNCH_BUILDER:-}
+      STRIPE_PRICE_ID_LAUNCH_PACKET_PRO: ${STRIPE_PRICE_ID_LAUNCH_PACKET_PRO:-}
+      STRIPE_PRICE_ID_ADVISOR_REVIEW: ${STRIPE_PRICE_ID_ADVISOR_REVIEW:-}
+      STRIPE_ONE_TIME_WEBHOOK_SECRET: ${STRIPE_ONE_TIME_WEBHOOK_SECRET:-}
+      # ── Sprint-006: Admin notifications ──
+      ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
 
   frontend:
     image: nginx:1.27-alpine
@@ -139,6 +147,8 @@ services:
       - ./api-client.js:/usr/share/nginx/html/api-client.js:ro
       - ./styles.css:/usr/share/nginx/html/styles.css:ro
       - ./admin.html:/usr/share/nginx/html/admin.html:ro
+      - ./dream-builder.html:/usr/share/nginx/html/dream-builder.html:ro
+      - ./dream-builder.js:/usr/share/nginx/html/dream-builder.js:ro
       - ./docker/nginx-frontend.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
