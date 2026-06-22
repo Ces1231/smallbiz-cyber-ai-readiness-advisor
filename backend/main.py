@@ -4,7 +4,9 @@ Registers CORS, routers, and startup hooks.
 """
 import structlog
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
@@ -48,9 +50,14 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.origins_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        log.warning("request_validation_error", path=str(request.url.path), errors=exc.errors())
+        return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
     # Routers — registered lazily to allow imports after app init
     from backend.routers.auth import router as auth_router

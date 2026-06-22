@@ -159,15 +159,28 @@ async function dbInit() {
     // Non-fatal — user is just unverified as purchased
   }
 
-  // Check for in-progress quiz draft (Feature 3 — also checks sb_quiz_draft canonical key)
+  // Check for in-progress quiz draft — safe merge so missing fields from older drafts get defaults
   try {
     var draftRaw = localStorage.getItem('sb_quiz_draft') || localStorage.getItem('db_quiz_draft');
     if (draftRaw) {
       var parsed = JSON.parse(draftRaw);
-      window._db.quizAnswers = parsed.quizAnswers || window._db.quizAnswers;
-      window._db.quizPage = parsed.quizPage || 1;
-      if (typeof Toast !== 'undefined') {
-        setTimeout(function() { Toast.info('Draft restored — continue where you left off.'); }, 600);
+      if (parsed && parsed.quizAnswers) {
+        var restored = parsed.quizAnswers;
+        // Merge: keep defaults for any field the draft doesn't have
+        var defaults = window._db.quizAnswers;
+        window._db.quizAnswers = {
+          skills: Array.isArray(restored.skills) ? restored.skills : defaults.skills,
+          problems: Array.isArray(restored.problems) ? restored.problems : defaults.problems,
+          business_type: restored.business_type || defaults.business_type,
+          industry_category: Array.isArray(restored.industry_category) ? restored.industry_category : defaults.industry_category,
+          business_concept: (restored.business_concept !== undefined) ? restored.business_concept : defaults.business_concept,
+          starting_capital: restored.starting_capital || defaults.starting_capital,
+          weekly_hours: restored.weekly_hours || defaults.weekly_hours,
+        };
+        window._db.quizPage = parsed.quizPage || 1;
+        if (typeof Toast !== 'undefined') {
+          setTimeout(function() { Toast.info('Draft restored — continue where you left off.'); }, 600);
+        }
       }
     }
   } catch (e) {}
@@ -231,6 +244,7 @@ async function _apiPost(path, body, token) {
     var msg = (err && err.detail && err.detail.message) || ('HTTP ' + resp.status);
     var e2 = new Error(msg);
     e2.status = resp.status;
+    e2.data = err;
     throw e2;
   }
   return resp.json();
@@ -513,15 +527,29 @@ async function submitQuiz() {
 
   var token = _getToken();
   try {
+    var qa = window._db.quizAnswers;
     var payload = {
-      skills: window._db.quizAnswers.skills,
-      problems: window._db.quizAnswers.problems,
-      business_type: window._db.quizAnswers.business_type,
-      industry_category: window._db.quizAnswers.industry_category,
-      business_concept: window._db.quizAnswers.business_concept || null,
-      starting_capital: window._db.quizAnswers.starting_capital,
-      weekly_hours: window._db.quizAnswers.weekly_hours,
+      skills: Array.isArray(qa.skills) ? qa.skills : [],
+      problems: Array.isArray(qa.problems) ? qa.problems : [],
+      business_type: qa.business_type,
+      industry_category: Array.isArray(qa.industry_category) ? qa.industry_category : [],
+      business_concept: qa.business_concept || null,
+      starting_capital: qa.starting_capital,
+      weekly_hours: qa.weekly_hours,
     };
+
+    // Client-side pre-validation
+    var missing = [];
+    if (!payload.skills.length) missing.push('skills (page 1)');
+    if (!payload.problems.length) missing.push('problems (page 2)');
+    if (!payload.business_type) missing.push('business type (page 3)');
+    if (!payload.starting_capital) missing.push('starting capital (page 5)');
+    if (!payload.weekly_hours) missing.push('weekly hours (page 6)');
+    if (missing.length) {
+      throw new Error('Missing required answers: ' + missing.join(', ') + '. Please go back and complete all steps.');
+    }
+
+    console.log('[Dream Builder] submitting quiz payload:', JSON.stringify(payload));
     var result = await _apiPost('/business/quiz', payload, token);
     window._db.businessIdeaId = result.business_idea_id;
     window._db.suggestions = result.suggestions;
@@ -530,7 +558,13 @@ async function submitQuiz() {
     renderResults(result.suggestions, result.mission_preview);
     _showSection('results');
   } catch (e) {
-    if (error) { error.textContent = (e.message || 'Failed to get ideas. Please try again.'); error.style.display = 'block'; }
+    var msg = e.message || 'Failed to get ideas. Please try again.';
+    // Extract Pydantic validation detail if available
+    if (e.data && Array.isArray(e.data.detail)) {
+      var fields = e.data.detail.map(function(d) { return d.loc.slice(1).join('.') + ': ' + d.msg; });
+      msg = 'Validation error — ' + fields.join('; ');
+    }
+    if (error) { error.textContent = msg; error.style.display = 'block'; }
     if (btn) { btn.disabled = false; btn.textContent = 'Get My Ideas'; }
   }
 }

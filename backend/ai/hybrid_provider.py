@@ -116,15 +116,10 @@ class HybridProvider(AIProvider):
                 log.info("hybrid_provider_used", provider="ollama_partial")
                 return
 
-        # ── Attempt 3: Hardcoded fallback ────────────────────────────────────
-        log.warning("hybrid_provider_used", provider="fallback")
-        yield (
-            "AI advice is temporarily unavailable. "
-            "Please ensure either NVIDIA_API_KEY is set or Ollama is running locally. "
-            "In the meantime, review your assessment scores and focus on the dimension "
-            "with the lowest score first — whether that is cybersecurity, AI readiness, "
-            "or funding readiness. Small improvements in your weakest area typically "
-            "deliver the greatest overall impact for your business."
+        # ── Attempt 3: No provider available — raise so callers can use their own fallbacks
+        log.warning("hybrid_provider_used", provider="none")
+        raise RuntimeError(
+            "No AI provider available. Set NVIDIA_API_KEY for cloud inference or start Ollama locally."
         )
 
     async def health_check(self) -> bool:
