@@ -1,6 +1,6 @@
 """
 SmallBiz Advisor — Admin Router
-Endpoints: metrics, user list, user detail, user update, password reset.
+Endpoints: metrics, user list, user detail, create user, update user, reset password, delete user.
 All endpoints require admin tier.
 """
 import secrets
@@ -26,6 +26,13 @@ VALID_TIERS = {"free", "pro", "pro_annual", "admin"}
 class AdminUpdateUserRequest(BaseModel):
     tier: str | None = None
     business_name: str | None = None
+
+
+class AdminCreateUserRequest(BaseModel):
+    email: str
+    password: str
+    business_name: str | None = None
+    tier: str = "free"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -322,3 +329,107 @@ async def reset_user_password(
 
     log.info("admin_password_reset", user_id=user_id, email=user_email)
     return {"message": f"Temporary password sent to {user_email}."}
+
+
+# ── POST /admin/users ──────────────────────────────────────────────────────────
+
+@router.post("/users", status_code=201)
+async def create_user(
+    body: AdminCreateUserRequest,
+    _profile: dict = Depends(require_admin_tier),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Create a new user account. Admin tier required."""
+    if body.tier not in VALID_TIERS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": "invalid_tier", "message": f"Tier must be one of: {', '.join(VALID_TIERS)}", "details": {}},
+        )
+    if len(body.password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": "password_too_short", "message": "Password must be at least 6 characters.", "details": {}},
+        )
+
+    # Create in GoTrue (auto-confirmed)
+    try:
+        result = supabase.auth.admin.create_user({
+            "email": body.email,
+            "password": body.password,
+            "email_confirm": True,
+            "user_metadata": {"business_name": body.business_name or ""},
+        })
+        user_id = str(result.user.id)
+    except Exception as exc:
+        err_str = str(exc).lower()
+        if "already" in err_str or "exists" in err_str or "registered" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"error": "email_exists", "message": "An account with this email already exists.", "details": {}},
+            )
+        log.error("admin_create_user_error", email=body.email, error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "create_failed", "message": "Failed to create user.", "details": {}},
+        )
+
+    # Upsert profile with requested tier
+    try:
+        supabase.table("user_profiles").upsert({
+            "id": user_id,
+            "business_name": body.business_name or "",
+            "tier": body.tier,
+            "assessments_this_month": 0,
+        }, on_conflict="id").execute()
+    except Exception as exc:
+        log.warning("admin_create_user_profile_error", user_id=user_id, error=str(exc))
+
+    log.info("admin_user_created", user_id=user_id, email=body.email, tier=body.tier)
+    return {"message": "User created.", "user_id": user_id, "email": body.email, "tier": body.tier}
+
+
+# ── DELETE /admin/users/{user_id} ──────────────────────────────────────────────
+
+@router.delete("/users/{user_id}", status_code=200)
+async def delete_user(
+    user_id: str,
+    _profile: dict = Depends(require_admin_tier),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Permanently delete a user and all their data. Admin tier required."""
+    # Fetch email for logging before deletion
+    user_email = ""
+    try:
+        auth_user = supabase.auth.admin.get_user_by_id(user_id)
+        user_email = auth_user.user.email or ""
+    except Exception:
+        pass
+
+    # Delete app data in FK-safe order (child tables first)
+    for table in ("advisor_requests", "purchases", "launch_plans", "business_ideas",
+                  "assessments", "advice_cache", "user_profiles"):
+        try:
+            col = "idea_id" if table == "launch_plans" else "user_id" if table != "user_profiles" else "id"
+            if table == "launch_plans":
+                # launch_plans.idea_id → business_ideas.id (need to find idea IDs first)
+                ideas = supabase.table("business_ideas").select("id").eq("user_id", user_id).execute()
+                idea_ids = [r["id"] for r in (ideas.data or [])]
+                if idea_ids:
+                    supabase.table("launch_plans").delete().in_("idea_id", idea_ids).execute()
+            else:
+                supabase.table(table).delete().eq(col, user_id).execute()
+        except Exception as exc:
+            log.warning("admin_delete_user_table_error", table=table, user_id=user_id, error=str(exc))
+
+    # Delete from GoTrue (removes from auth.users)
+    try:
+        supabase.auth.admin.delete_user(user_id)
+    except Exception as exc:
+        log.error("admin_delete_gotrue_error", user_id=user_id, error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "delete_failed", "message": "Failed to delete user account.", "details": {}},
+        )
+
+    log.info("admin_user_deleted", user_id=user_id, email=user_email)
+    return {"message": f"User {user_email or user_id} deleted."}

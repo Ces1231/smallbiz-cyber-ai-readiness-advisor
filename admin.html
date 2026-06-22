@@ -45,7 +45,17 @@
 
   <main style="padding:32px 6vw; max-width:1200px; margin:0 auto">
     <div id="adminGate">
-      <p class="muted">Checking admin access...</p>
+      <!-- Login form — shown when not authenticated -->
+      <div id="adminLoginBox" style="max-width:380px; margin:60px auto; background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:32px 28px;">
+        <h2 style="margin:0 0 6px; font-size:1.2rem;">Admin Login</h2>
+        <p class="muted" style="margin:0 0 24px; font-size:0.875rem;">Champtron Systems — Admin Portal</p>
+        <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:5px;">Email</label>
+        <input id="adminEmail" type="email" placeholder="admin@example.com" style="width:100%; box-sizing:border-box; margin-bottom:14px;" onkeydown="if(event.key==='Enter') adminLogin()" />
+        <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:5px;">Password</label>
+        <input id="adminPassword" type="password" placeholder="••••••••" style="width:100%; box-sizing:border-box; margin-bottom:20px;" onkeydown="if(event.key==='Enter') adminLogin()" />
+        <button class="button primary" id="adminLoginBtn" onclick="adminLogin()" style="width:100%;">Login</button>
+        <p id="adminLoginError" style="display:none; color:var(--red,#f87171); font-size:0.85rem; margin-top:12px; text-align:center;"></p>
+      </div>
     </div>
 
     <div id="adminContent" style="display:none">
@@ -57,13 +67,14 @@
       <!-- Users -->
       <h2 style="margin-bottom:16px;">Users</h2>
 
-      <!-- Search + tier filter -->
+      <!-- Search + tier filter + add user -->
       <div class="admin-search">
         <input id="adminSearchInput" type="text" placeholder="Search by email or business name…" oninput="scheduleSearch()" />
         <button class="button secondary small" onclick="applyTierFilter(null)">All</button>
         <button class="button secondary small" onclick="applyTierFilter('free')">Free</button>
         <button class="button secondary small" onclick="applyTierFilter('pro')">Pro</button>
         <button class="button secondary small" onclick="applyTierFilter('admin')">Admin</button>
+        <button class="button primary small" onclick="openAddUserModal()" style="margin-left:auto;">+ Add User</button>
       </div>
 
       <div style="overflow-x:auto">
@@ -110,7 +121,41 @@
         <button class="button secondary" onclick="resetPassword()" id="editResetBtn">Reset Password</button>
         <button class="button ghost" onclick="closeEditModal()">Cancel</button>
       </div>
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+        <button id="editDeleteBtn" onclick="deleteUser()" style="background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.3); border-radius:8px; padding:7px 16px; font-size:0.85rem; cursor:pointer; width:100%;">Delete Account Permanently</button>
+      </div>
       <p id="editStatus" class="edit-status"></p>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="addUserOverlay" class="edit-overlay hidden">
+    <div class="edit-card">
+      <button class="edit-close" onclick="closeAddUserModal()">&#x2715;</button>
+      <h3 style="margin:0 0 20px;">Add New User</h3>
+
+      <label>Email *</label>
+      <input id="newUserEmail" type="email" placeholder="user@example.com" />
+
+      <label>Password *</label>
+      <input id="newUserPassword" type="password" placeholder="Min 6 characters" />
+
+      <label>Business Name</label>
+      <input id="newUserBusiness" type="text" placeholder="Optional" maxlength="120" />
+
+      <label>Tier</label>
+      <select id="newUserTier">
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="pro_annual">Pro Annual</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <div class="edit-actions" style="margin-top:20px;">
+        <button class="button primary" onclick="createUser()" id="addUserBtn">Create Account</button>
+        <button class="button ghost" onclick="closeAddUserModal()">Cancel</button>
+      </div>
+      <p id="addUserStatus" class="edit-status"></p>
     </div>
   </div>
 
@@ -123,28 +168,6 @@
     let _tierFilter = null;
     let _searchTimer = null;
     let _editingUserId = null;
-
-    // ── Init ──────────────────────────────────────────────────────────────────
-
-    async function loadAdminDashboard() {
-      const gate = document.getElementById('adminGate');
-      const content = document.getElementById('adminContent');
-      let profile;
-      try {
-        profile = await ApiClient.get('/profiles/me');
-      } catch (err) {
-        gate.innerHTML = '<p class="muted">Unable to verify access. <a href="/">Go to main tool</a>.</p>';
-        return;
-      }
-      if (profile.tier !== 'admin') {
-        gate.innerHTML = '<p class="muted">Admin access required. <a href="/">Go to main tool</a>.</p>';
-        return;
-      }
-      gate.style.display = 'none';
-      content.style.display = 'block';
-      document.getElementById('adminUserEmail').textContent = Auth.getUser()?.email || '';
-      await Promise.all([loadMetrics(), loadUsers(0)]);
-    }
 
     // ── Metrics ───────────────────────────────────────────────────────────────
 
@@ -317,22 +340,152 @@
       }
     }
 
-    // ── Bootstrap ─────────────────────────────────────────────────────────────
+    // ── Add User Modal ────────────────────────────────────────────────────────
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof Auth === 'undefined') {
-        document.getElementById('adminGate').innerHTML =
-          '<p class="muted">Auth not available. <a href="/">Go to main tool</a>.</p>';
+    function openAddUserModal() {
+      document.getElementById('newUserEmail').value = '';
+      document.getElementById('newUserPassword').value = '';
+      document.getElementById('newUserBusiness').value = '';
+      document.getElementById('newUserTier').value = 'free';
+      document.getElementById('addUserStatus').textContent = '';
+      document.getElementById('addUserStatus').className = 'edit-status';
+      document.getElementById('addUserBtn').disabled = false;
+      document.getElementById('addUserBtn').textContent = 'Create Account';
+      document.getElementById('addUserOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('newUserEmail').focus(), 50);
+    }
+
+    function closeAddUserModal() {
+      document.getElementById('addUserOverlay').classList.add('hidden');
+    }
+
+    async function createUser() {
+      const email = document.getElementById('newUserEmail').value.trim();
+      const password = document.getElementById('newUserPassword').value;
+      const business_name = document.getElementById('newUserBusiness').value.trim();
+      const tier = document.getElementById('newUserTier').value;
+      const btn = document.getElementById('addUserBtn');
+      const statusEl = document.getElementById('addUserStatus');
+
+      if (!email || !password) {
+        statusEl.textContent = 'Email and password are required.';
+        statusEl.className = 'edit-status err';
         return;
       }
-      Auth.onAuthChange(({ loggedIn }) => {
-        if (loggedIn) {
-          loadAdminDashboard();
-        } else {
-          document.getElementById('adminGate').innerHTML =
-            '<p class="muted">Please <a href="/">log in</a> with an admin account.</p>';
+
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        const result = await ApiClient.post('/admin/users', { email, password, business_name, tier });
+        statusEl.textContent = `Account created for ${result.email}.`;
+        statusEl.className = 'edit-status ok';
+        btn.textContent = 'Created!';
+        loadUsers(_offset);
+        setTimeout(closeAddUserModal, 1800);
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to create user.';
+        statusEl.className = 'edit-status err';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    // ── Delete User ───────────────────────────────────────────────────────────
+
+    async function deleteUser() {
+      if (!_editingUserId) return;
+      const email = document.getElementById('editEmail').textContent;
+      if (!confirm(`Permanently delete ${email}?\n\nThis removes all their data and cannot be undone.`)) return;
+
+      const btn = document.getElementById('editDeleteBtn');
+      const statusEl = document.getElementById('editStatus');
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        const result = await ApiClient.delete(`/admin/users/${_editingUserId}`);
+        closeEditModal();
+        loadUsers(_offset);
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to delete user.';
+        statusEl.className = 'edit-status err';
+        btn.disabled = false;
+        btn.textContent = 'Delete Account Permanently';
+      }
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+
+    async function adminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('adminLoginError');
+
+      if (!email || !password) {
+        errEl.textContent = 'Please enter your email and password.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+      errEl.style.display = 'none';
+
+      try {
+        await Auth.login(email, password);
+        await loadAdminDashboard();
+      } catch (err) {
+        errEl.textContent = err.message || 'Login failed. Check your credentials.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    }
+
+    async function loadAdminDashboard() {
+      const gate = document.getElementById('adminGate');
+      const content = document.getElementById('adminContent');
+      const errEl = document.getElementById('adminLoginError');
+
+      let profile;
+      try {
+        profile = await ApiClient.get('/profiles/me');
+      } catch (err) {
+        if (errEl) { errEl.textContent = 'Unable to verify access. Try again.'; errEl.style.display = 'block'; }
+        const btn = document.getElementById('adminLoginBtn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+        return;
+      }
+
+      if (profile.tier !== 'admin') {
+        if (errEl) {
+          errEl.textContent = 'Admin access required. This account does not have admin privileges.';
+          errEl.style.display = 'block';
         }
-      });
+        const btn = document.getElementById('adminLoginBtn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+        Auth.logout();
+        return;
+      }
+
+      gate.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('adminUserEmail').textContent = Auth.getUser()?.email || profile.email || '';
+      await Promise.all([loadMetrics(), loadUsers(0)]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already logged in from another page, skip the login form
+      if (Auth.isLoggedIn()) {
+        document.getElementById('adminLoginBox').style.display = 'none';
+        loadAdminDashboard();
+      }
     });
   </script>
 </body>
