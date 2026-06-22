@@ -35,9 +35,9 @@ def create_app() -> FastAPI:
     configure_logging()
 
     app = FastAPI(
-        title="SmallBiz Advisor API",
+        title="Champ Compass API",
         version="1.0.0",
-        description="Backend API for SmallBiz Cyber & AI Readiness Advisor — Champtron Systems LLC",
+        description="Backend API for Champ Compass — Cyber & AI Readiness Advisor by Champtron Systems LLC",
     )
 
     # Request ID middleware — assigns UUID per request, binds to structlog context

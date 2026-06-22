@@ -1,4 +1,4 @@
-# SmallBiz Cyber & AI Readiness Advisor
+# Champ Compass
 
 **Built by Champtron Systems LLC**
 
@@ -356,4 +356,4 @@ eas build --platform all
 
 ## Built by Champtron Systems LLC
 
-*SmallBiz Cyber & AI Readiness Advisor — helping small businesses become cyber-ready, AI-ready, and funding-ready.*
+*Champ Compass — helping small businesses find their direction, become cyber-ready, AI-ready, and funding-ready.*
