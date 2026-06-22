@@ -17,32 +17,37 @@
           <span>Built for entrepreneurs and small business owners</span>
         </div>
       </div>
-      <a href="#assessment" class="nav-cta">Start Assessment</a>
+      <a href="#assessment" class="nav-cta" onclick="if(Auth && !Auth.isLoggedIn()){event.preventDefault();showAuthModal('signup');}">Start Assessment</a>
       <div id="authControls">
         <button class="button secondary" onclick="showAuthModal('login')">Login</button>
         <button class="button primary" onclick="showAuthModal('signup')">Sign Up Free</button>
       </div>
       <div id="userMenu" style="display:none">
         <span id="userEmailDisplay" class="muted"></span>
+        <div id="subscriptionStatus" style="display:none;align-items:center;gap:8px">
+          <span id="tierBadge" class="tier-badge"></span>
+          <button class="button secondary small" onclick="openBillingPortal()" id="manageBillingBtn" style="display:none">Manage Billing</button>
+        </div>
+        <button class="button secondary small" onclick="showSettingsModal()">Settings</button>
         <button class="button secondary" onclick="Auth.logout().then(refreshAuthUI)">Logout</button>
       </div>
     </nav>
 
     <section class="hero-grid">
       <div>
-        <p class="eyebrow">AI Builder Grant Demo</p>
+        <p class="eyebrow">Cybersecurity & AI Readiness</p>
         <h1>SmallBiz Cyber & AI Readiness Advisor</h1>
         <p class="lead">
           A practical AI-powered readiness tool that helps entrepreneurs identify cybersecurity gaps,
           AI automation opportunities, funding readiness issues, ROI potential, and a 30/60/90-day growth roadmap.
         </p>
         <div class="cta-row">
-          <a href="#assessment" class="button primary">Run Demo</a>
-          <button class="button secondary" onclick="loadSample('restaurant')">Load Sample Business</button>
+          <button class="button primary" onclick="Auth && Auth.isLoggedIn() ? document.getElementById('assessment').scrollIntoView({behavior:'smooth'}) : showAuthModal('signup')">Get Started Free</button>
+          <button class="button secondary" onclick="showAuthModal('login')">Log In</button>
         </div>
       </div>
       <div class="hero-card">
-        <h3>What the demo produces</h3>
+        <h3>What you'll receive</h3>
         <ul>
           <li>Cyber readiness score</li>
           <li>AI readiness score</li>
@@ -71,7 +76,42 @@
       <div id="historyList" class="history-grid"></div>
       <div id="historyPagination" class="pagination-row"></div>
     </section>
-    <section class="section" id="assessment">
+    <section class="section" id="guestCta" style="display:none">
+      <div class="section-heading" style="max-width:700px;margin-bottom:44px">
+        <p class="eyebrow">Built for Small Business</p>
+        <h2>Know exactly where your business stands — in minutes</h2>
+        <p style="font-size:18px;line-height:1.6;color:#dcecff">Most small business owners don't have access to cybersecurity consultants, AI strategists, or funding advisors. The SmallBiz Advisor gives you all three — in a single free assessment.</p>
+      </div>
+
+      <div class="grid three" style="margin-bottom:36px">
+        <div class="panel" style="border-color:rgba(34,211,238,.3)">
+          <p style="font-size:32px;margin:0 0 14px">&#x1F6E1;</p>
+          <h3 style="color:var(--cyan);margin-top:0">Cybersecurity Readiness</h3>
+          <p class="muted">Identify gaps in multi-factor authentication, data backups, and employee training before they become costly incidents.</p>
+        </div>
+        <div class="panel" style="border-color:rgba(96,165,250,.3)">
+          <p style="font-size:32px;margin:0 0 14px">&#x1F916;</p>
+          <h3 style="color:var(--blue);margin-top:0">AI Adoption Score</h3>
+          <p class="muted">Discover where automation can reduce labor hours and cut operating costs — tailored to your specific industry.</p>
+        </div>
+        <div class="panel" style="border-color:rgba(52,211,153,.3)">
+          <p style="font-size:32px;margin:0 0 14px">&#x1F4CB;</p>
+          <h3 style="color:var(--green);margin-top:0">Funding Preparedness</h3>
+          <p class="muted">Get a readiness score and action checklist to position your business for grants, SBA loans, and community financing.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="text-align:center;padding:44px 32px;max-width:600px;margin:0 auto">
+        <h3 style="font-size:22px;margin:0 0 10px">Free to start. No credit card required.</h3>
+        <p class="muted" style="font-size:16px;margin:0 0 28px">Create your account and complete your first full assessment in under 5 minutes.</p>
+        <div class="cta-row" style="justify-content:center;gap:14px">
+          <button class="button primary" onclick="showAuthModal('signup')" style="font-size:16px;padding:16px 32px">Create Free Account</button>
+          <button class="button secondary" onclick="showAuthModal('login')">Log In</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="assessment" style="display:none">
       <div class="section-heading">
         <p class="eyebrow">Step 1</p>
         <h2>Business Assessment</h2>
@@ -148,7 +188,7 @@
       </form>
     </section>
 
-    <section class="section results hidden" id="results">
+    <section class="section results hidden" id="results" style="display:none">
       <div class="section-heading">
         <p class="eyebrow">Step 2</p>
         <h2>Dashboard Results</h2>
@@ -158,6 +198,35 @@
             Get AI-Powered Advice
           </button>
           <p class="muted" style="margin-top:8px">Personalized recommendations for your specific scores and business.</p>
+        </div>
+
+        <!-- Upgrade banner — shown dynamically based on quota usage -->
+        <div id="upgradeBanner" class="upgrade-banner hidden" role="alert">
+          <div style="flex:1">
+            <strong id="upgradeBannerTitle">Upgrade to Pro</strong>
+            <span id="upgradeBannerMessage"> — Unlock unlimited assessments and AI-powered advice.</span>
+          </div>
+          <button class="button primary small" onclick="initiateCheckout('monthly')">Upgrade — $9/mo</button>
+          <button class="button secondary small" onclick="initiateCheckout('yearly')">Best Value — $99/yr</button>
+        </div>
+
+        <!-- AI Advisor paywall overlay — shown to free users who click Get AI Advice -->
+        <div id="aiAdvisorPaywall" class="paywall-overlay hidden">
+          <div class="paywall-card">
+            <h3>AI Advisor — Pro Feature</h3>
+            <p>Get personalized, AI-generated action plans for your cybersecurity, AI readiness, and funding scores.</p>
+            <ul class="feature-list">
+              <li>Personalized advice per dimension</li>
+              <li>AI-generated 30/60/90-day roadmap</li>
+              <li>Custom executive summary</li>
+              <li>Unlimited assessments per month</li>
+            </ul>
+            <div class="pricing-row">
+              <button class="button primary" onclick="initiateCheckout('monthly')">Start Pro — $9/mo</button>
+              <button class="button secondary" onclick="initiateCheckout('yearly')">Annual — $99/yr (save 8%)</button>
+            </div>
+            <p class="muted" style="font-size:13px;margin-top:12px">Cancel anytime from your billing settings.</p>
+          </div>
         </div>
       </div>
 
@@ -433,23 +502,6 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-heading">
-        <p class="eyebrow">Step 3</p>
-        <h2>Skip Grant Mode</h2>
-        <p>Grant-ready positioning generated for the application.</p>
-      </div>
-      <div class="panel">
-        <h3>What did you build?</h3>
-        <p>I built an AI-powered readiness advisor that helps entrepreneurs and small business owners understand their cybersecurity posture, AI adoption readiness, operational gaps, and growth opportunities. The tool generates readiness scores, practical recommendations, ROI estimates, and a 30/60/90-day roadmap that business owners can act on immediately.</p>
-
-        <h3>Problem solved</h3>
-        <p>Many small business owners cannot afford dedicated cybersecurity, AI, or operations consultants, yet they still need clear guidance to modernize, reduce risk, and grow. This tool turns complex technology and business readiness questions into a simple assessment with useful, actionable outputs.</p>
-
-        <h3>Why it can scale</h3>
-        <p>The platform can support restaurants, nonprofits, contractors, creators, consultants, online stores, retail shops, and service businesses through industry-specific recommendations and self-service reporting.</p>
-      </div>
-    </section>
   </main>
 
   <footer>
@@ -474,9 +526,146 @@
         <span id="authSwitchText">Don't have an account?</span>
         <a href="#" onclick="toggleAuthMode(); return false;">Sign up free</a>
       </p>
+      <p id="forgotPasswordRow" class="muted" style="text-align:center; margin-top:8px; font-size:13px;">
+        <a href="#" onclick="showForgotPasswordModal(); return false;">Forgot password?</a>
+      </p>
     </div>
   </div>
 
+  <!-- Forgot Password Modal -->
+  <div id="forgotModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeForgotModal()">&#x00D7;</button>
+      <h3>Reset Password</h3>
+      <p class="muted" style="margin-bottom:16px; font-size:14px;">Enter your email and we'll send a reset link.</p>
+      <label>Email <input id="forgotEmail" type="email" required /></label>
+      <p id="forgotMsg" class="error-text hidden"></p>
+      <button class="button primary wide" onclick="submitForgotPassword()">Send Reset Link</button>
+    </div>
+  </div>
+
+  <!-- Account Settings Modal -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeSettingsModal()">&#x00D7;</button>
+      <h3>Account Settings</h3>
+      <div style="border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:20px;">
+        <h4 style="margin:0 0 12px; font-size:0.95rem;">Update Business Name</h4>
+        <label>Business Name <input id="settingsBusinessName" type="text" maxlength="120" placeholder="Your business name" /></label>
+        <p id="settingsNameMsg" class="error-text hidden"></p>
+        <button class="button primary" style="margin-top:8px" onclick="saveSettingsName()">Save Name</button>
+      </div>
+      <div>
+        <h4 style="margin:0 0 12px; font-size:0.95rem;">Change Password</h4>
+        <label>New Password <input id="settingsNewPassword" type="password" minlength="8" placeholder="Min 8 chars, 1 uppercase, 1 number" /></label>
+        <label>Confirm Password <input id="settingsConfirmPassword" type="password" placeholder="Repeat new password" /></label>
+        <p id="settingsPasswordMsg" class="error-text hidden"></p>
+        <button class="button primary" style="margin-top:8px" onclick="saveSettingsPassword()">Change Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Reset (from email link) Modal -->
+  <div id="resetModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3>Set New Password</h3>
+      <p class="muted" style="margin-bottom:16px; font-size:14px;">Choose a new password for your account.</p>
+      <label>New Password <input id="resetNewPassword" type="password" minlength="8" placeholder="Min 8 chars, 1 uppercase, 1 number" /></label>
+      <label>Confirm Password <input id="resetConfirmPassword" type="password" placeholder="Repeat new password" /></label>
+      <p id="resetMsg" class="error-text hidden"></p>
+      <button class="button primary wide" onclick="submitResetPassword()">Set Password</button>
+    </div>
+  </div>
+
+  <!-- ── Onboarding Gate Modal (SPRINT-005) ── -->
+  <div id="onboardingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingModalTitle" aria-hidden="true">
+    <div class="modal-box onboarding-modal">
+
+      <!-- Panel 1: Q1 -->
+      <div id="onboardingQ1" class="onboarding-panel">
+        <p class="eyebrow">Step 1 of 2</p>
+        <h2 id="onboardingModalTitle">Are you seeking advice on your current or existing business?</h2>
+        <p class="muted">This helps us route you to the right assessment.</p>
+        <div class="modal-btn-row">
+          <button class="button primary" onclick="onboardingQ1Yes()">Yes</button>
+          <button class="button secondary" onclick="onboardingQ1No()">No</button>
+        </div>
+      </div>
+
+      <!-- Panel 2: Q2 -->
+      <div id="onboardingQ2" class="onboarding-panel hidden">
+        <button class="link-btn" onclick="onboardingQ2Back()">&larr; Back</button>
+        <p class="eyebrow">Step 2 of 2</p>
+        <h2>Are you looking for advice on starting a new business?</h2>
+        <p class="muted">We offer a guided launch readiness assessment for new entrepreneurs.</p>
+        <div class="modal-btn-row">
+          <button class="button primary" onclick="onboardingQ2Yes()">Yes</button>
+          <button class="button secondary" onclick="onboardingQ2No()">No</button>
+        </div>
+      </div>
+
+      <!-- Panel 3: New Business (Q2 Yes) -->
+      <div id="onboardingNewBiz" class="onboarding-panel hidden">
+        <button class="link-btn" onclick="onboardingNewBizBack()">&larr; Back</button>
+        <p class="eyebrow">Starting a Business</p>
+        <h2>Your launch roadmap</h2>
+        <p class="muted">Follow these steps to build a strong, secure foundation from day one.</p>
+        <ol class="newbiz-steps">
+          <li><strong>Define your business idea</strong><span>Identify your product or service, research your target market, and size up competitors.</span></li>
+          <li><strong>Write a business plan</strong><span>Executive summary, market analysis, pricing, and 12-month financial projections.</span></li>
+          <li><strong>Choose a business structure</strong><span>Sole proprietorship, LLC, or Corporation — each has different liability and tax implications.</span></li>
+          <li><strong>Register your business</strong><span>Register a business name with your state or county clerk's office.</span></li>
+          <li><strong>Get an EIN (Tax ID)</strong><span>Apply free at IRS.gov. Required for taxes, banking, and hiring.</span></li>
+          <li><strong>Open a business bank account</strong><span>Keep personal and business finances separate from day one.</span></li>
+          <li><strong>Set up basic cybersecurity</strong><span>Enable MFA, use a password manager, and schedule automatic data backups.</span></li>
+          <li><strong>Build your online presence</strong><span>Register a domain, create a Google Business Profile, and set up social media.</span></li>
+          <li><strong>Get required licenses &amp; permits</strong><span>Check local business license rules and any industry-specific permits.</span></li>
+          <li><strong>Set up bookkeeping</strong><span>Track income and expenses from day one. Consider Wave (free) or QuickBooks.</span></li>
+        </ol>
+        <div class="modal-btn-row" style="margin-top:4px">
+          <button class="button primary" onclick="onboardingDone()">Got it &mdash; Continue to App</button>
+        </div>
+      </div>
+
+      <!-- Panel 4: Champtron Info (Q2 No) -->
+      <div id="onboardingChamp" class="onboarding-panel hidden">
+        <button class="link-btn" onclick="onboardingChampBack()">&larr; Back</button>
+        <div class="champ-header">
+          <h2>Champtron Systems LLC</h2>
+          <p class="champ-tagline">Advanced IT Solutions for Modern Businesses</p>
+          <p class="muted">Sanford, FL</p>
+        </div>
+        <p class="champ-about">Local IT solutions provider specializing in automation, networking, infrastructure as code, and AI technologies to help businesses optimize operations. Security-first mindset.</p>
+        <div class="champ-services">
+          <p class="label">Our Services</p>
+          <div class="champ-service-grid">
+            <span class="service-pill">IT Automation</span>
+            <span class="service-pill">Network Solutions</span>
+            <span class="service-pill">Infrastructure as Code</span>
+            <span class="service-pill">Zero Trust Security</span>
+            <span class="service-pill">AI Solutions</span>
+            <span class="service-pill">Data Management</span>
+            <span class="service-pill">Cybersecurity</span>
+            <span class="service-pill">Custom Application Development</span>
+            <span class="service-pill">Website Development</span>
+          </div>
+        </div>
+        <div class="champ-contact">
+          <p><strong>Phone:</strong> <a href="tel:8104070773">(810) 407-0773</a></p>
+          <p><strong>Email:</strong> <a href="mailto:info@champtron-systems.com">info@champtron-systems.com</a></p>
+          <p class="muted">Mon&ndash;Fri 8AM&ndash;6PM &nbsp;|&nbsp; Sat 9AM&ndash;2PM</p>
+        </div>
+        <div class="modal-btn-row">
+          <a href="https://www.champtron-systems.com/#contact" target="_blank" rel="noopener" class="button primary">Book a Free Consultation</a>
+          <a href="https://www.champtron-systems.com" target="_blank" rel="noopener" class="button secondary">Visit Website</a>
+        </div>
+        <button class="button ghost" style="margin-top:12px;width:100%" onclick="onboardingDone()">Continue to App</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/config.js"></script>
   <script src="auth.js"></script>
   <script src="api-client.js"></script>
   <script src="app.js"></script>

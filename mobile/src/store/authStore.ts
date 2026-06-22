@@ -11,8 +11,10 @@ interface AuthState {
   isPaid: boolean;
   isLoading: boolean;
   error: string | null;
-  /** Set to true when user authenticates via the "Starting a Business" path. */
-  pendingStartupRedirect: boolean;
+  /** In-memory mirror of AsyncStorage 'onboardingComplete'. Set by RootNavigator on init. */
+  onboardingComplete: boolean;
+  /** Deep-route target set by OnboardingGateScreen; consumed and cleared by HomeScreen. */
+  pendingRoute: 'AssessmentForm' | 'StartupStep1' | 'DreamBuilderQuiz' | 'ChampInfo' | null;
 
   // Actions
   initialize: () => Promise<void>;
@@ -21,17 +23,19 @@ interface AuthState {
   logout: () => Promise<void>;
   setIsPaid: (paid: boolean) => void;
   clearError: () => void;
-  setPendingStartupRedirect: (val: boolean) => void;
+  setOnboardingComplete: (val: boolean) => void;
+  setPendingRoute: (route: 'AssessmentForm' | 'StartupStep1' | 'DreamBuilderQuiz' | 'ChampInfo' | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
   isLoggedIn: false,
   isPaid: false,
   isLoading: false,
   error: null,
-  pendingStartupRedirect: false,
+  onboardingComplete: false,
+  pendingRoute: null,
 
   initialize: async () => {
     try {
@@ -73,12 +77,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
-    set({ token: null, user: null, isLoggedIn: false, isPaid: false });
+    // Reset in-memory onboarding flag but do NOT clear AsyncStorage —
+    // the gate should only show once per device total, not once per login session.
+    set({
+      token: null,
+      user: null,
+      isLoggedIn: false,
+      isPaid: false,
+      onboardingComplete: false,
+      pendingRoute: null,
+    });
   },
 
   setIsPaid: (paid) => set({ isPaid: paid }),
-
   clearError: () => set({ error: null }),
-
-  setPendingStartupRedirect: (val) => set({ pendingStartupRedirect: val }),
+  setOnboardingComplete: (val) => set({ onboardingComplete: val }),
+  setPendingRoute: (route) => set({ pendingRoute: route }),
 }));

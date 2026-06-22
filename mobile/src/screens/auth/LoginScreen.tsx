@@ -21,11 +21,10 @@ import { typography } from '../../theme/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export function LoginScreen({ navigation, route }: Props) {
+export function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading, error, clearError, setPendingStartupRedirect } = useAuthStore();
-  const isStartup = route.params?.isStartup ?? false;
+  const { login, isLoading, error, clearError } = useAuthStore();
 
   async function handleLogin() {
     if (!email.trim() || !password) {
@@ -34,14 +33,9 @@ export function LoginScreen({ navigation, route }: Props) {
     }
     try {
       clearError();
-      if (isStartup) {
-        setPendingStartupRedirect(true);
-      }
       await login(email.trim(), password);
       // Navigation handled by RootNavigator on isLoggedIn change.
-      // pendingStartupRedirect flag is read by HomeScreen to redirect to StartupStep1.
     } catch {
-      setPendingStartupRedirect(false);
       // error set in store
     }
   }
@@ -88,7 +82,7 @@ export function LoginScreen({ navigation, route }: Props) {
             <Button
               title="Don't have an account? Sign up"
               variant="ghost"
-              onPress={() => navigation.navigate('Signup', { isStartup })}
+              onPress={() => navigation.navigate('Signup')}
               style={styles.link}
             />
           </ScrollView>

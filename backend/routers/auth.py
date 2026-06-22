@@ -3,9 +3,12 @@ SmallBiz Advisor — Auth Router
 Endpoints: /auth/signup, /auth/login, /auth/logout, /auth/me
 Uses Supabase Auth as the identity provider.
 """
+import asyncio
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
+
+from backend.email_helper import send_signup_notification_email, send_welcome_email
 
 from backend.dependencies import get_supabase_client, get_current_user, get_token
 from backend.schemas.auth import (
@@ -16,6 +19,8 @@ from backend.schemas.auth import (
     LoginUser,
     MeResponse,
     MessageResponse,
+    ForgotPasswordRequest,
+    ChangePasswordRequest,
 )
 
 router = APIRouter()
@@ -69,6 +74,27 @@ async def signup(
         )
 
     log.info("user_created", user_id=str(result.user.id))
+    asyncio.create_task(
+        send_signup_notification_email(
+            user_email=body.email,
+            business_name=body.business_name or "",
+            user_id=str(result.user.id),
+        )
+    )
+    asyncio.create_task(
+        send_welcome_email(user_email=body.email, business_name=body.business_name or "")
+    )
+    # When GOTRUE_MAILER_AUTOCONFIRM=true the session is immediately available —
+    # return the token so the client can skip the email-confirm step.
+    if result.session and result.session.access_token:
+        return SignupResponse(
+            user_id=str(result.user.id),
+            email=result.user.email,
+            message="Account created.",
+            access_token=result.session.access_token,
+            token_type="bearer",
+            expires_in=result.session.expires_in or 3600,
+        )
     return SignupResponse(
         user_id=str(result.user.id),
         email=result.user.email,
@@ -152,6 +178,40 @@ async def logout(
         log.error("logout_revocation_error", error=str(exc), user_id=current_user["id"])
     log.info("logout_success", user_id=current_user["id"])
     return MessageResponse(message="Logged out successfully.")
+
+
+@router.post("/forgot-password", response_model=MessageResponse, status_code=200)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    supabase: Client = Depends(get_supabase_client),
+) -> MessageResponse:
+    """Send a password recovery email. Always returns 200 to avoid email enumeration."""
+    try:
+        supabase.auth.reset_password_for_email(body.email)
+        log.info("password_reset_requested", email=body.email)
+    except Exception as exc:
+        log.warning("password_reset_error", error=str(exc))
+    return MessageResponse(message="If that email exists, a reset link has been sent.")
+
+
+@router.patch("/change-password", response_model=MessageResponse, status_code=200)
+async def change_password(
+    body: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_client),
+) -> MessageResponse:
+    """Update the authenticated user's password."""
+    user_id = current_user["id"]
+    try:
+        supabase.auth.admin.update_user_by_id(user_id, {"password": body.new_password})
+        log.info("password_changed", user_id=user_id)
+    except Exception as exc:
+        log.error("password_change_error", user_id=user_id, error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": "password_change_failed", "message": "Failed to update password.", "details": {}},
+        )
+    return MessageResponse(message="Password updated successfully.")
 
 
 @router.get("/me", response_model=MeResponse, status_code=200)

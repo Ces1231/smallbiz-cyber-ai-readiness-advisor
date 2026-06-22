@@ -98,7 +98,9 @@ document.getElementById("assessmentForm").addEventListener("submit", (e)=>{
 function renderResults(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall){
   latestData = data;
   latestScores = { cyberScoreVal, aiScoreVal, fundingScoreVal, overall };
-  document.getElementById("results").classList.remove("hidden");
+  const resultsEl = document.getElementById("results");
+  resultsEl.classList.remove("hidden");
+  resultsEl.style.display = 'block';
   cyberBar.style.width = `${cyberScoreVal}%`;
   aiBar.style.width = `${aiScoreVal}%`;
   fundingBar.style.width = `${fundingScoreVal}%`;
@@ -898,8 +900,8 @@ async function loadHistoricalAssessment(id) {
     if (industryEl && assessment.industry) industryEl.value = assessment.industry;
     const challengeEl = document.getElementById('challenge');
     if (challengeEl && assessment.challenge) challengeEl.value = assessment.challenge;
-    // Re-run the analysis with historical data
-    analyze();
+    // Re-run the analysis with the loaded historical data
+    document.getElementById('assessmentForm').dispatchEvent(new Event('submit'));
     document.getElementById('assessment')?.scrollIntoView({ behavior: 'smooth' });
   } catch (err) {
     console.error('Failed to load historical assessment:', err);
@@ -927,17 +929,175 @@ function renderPagination(meta, currentOffset) {
   }
 }
 
-// Register auth change listener so history loads when user logs in
+// Register auth change listener so history loads and tier UI refreshes on login
 if (typeof Auth !== 'undefined') {
   Auth.onAuthChange(({ loggedIn }) => {
-    if (loggedIn) loadAssessmentHistory();
+    if (loggedIn) {
+      loadAssessmentHistory();
+      checkTierAndShowUpgrade();
+      // Show onboarding gate on every login — no localStorage gate
+      setTimeout(showOnboardingModal, 300);
+    }
   });
+}
+
+// ── Onboarding Gate (SPRINT-005) ─────────────────────────────────────────────
+
+function _obPanel(showId) {
+  ['onboardingQ1','onboardingQ2','onboardingNewBiz','onboardingChamp'].forEach(function(id) {
+    document.getElementById(id).classList.toggle('hidden', id !== showId);
+  });
+}
+
+function showOnboardingModal() {
+  var modal = document.getElementById('onboardingModal');
+  if (!modal) return;
+  _obPanel('onboardingQ1');
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function hideOnboardingModal() {
+  var modal = document.getElementById('onboardingModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+// Q1: Yes → go straight to assessment
+window.onboardingQ1Yes = function() {
+  hideOnboardingModal();
+  var el = document.getElementById('assessment');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+};
+
+// Q1: No → show Q2
+window.onboardingQ1No = function() { _obPanel('onboardingQ2'); };
+
+// Q2: Back → Q1
+window.onboardingQ2Back = function() { _obPanel('onboardingQ1'); };
+
+// Q2: Yes → Dream-to-Launch Builder (new business path)
+window.onboardingQ2Yes = function() {
+  var token = Auth.getToken();
+  if (token) sessionStorage.setItem('sb_access_token', token);
+  hideOnboardingModal();
+  window.location.href = 'dream-builder.html';
+};
+
+// Q2: No → Champtron info
+window.onboardingQ2No = function() { _obPanel('onboardingChamp'); };
+
+// New biz: Back → Q2
+window.onboardingNewBizBack = function() { _obPanel('onboardingQ2'); };
+
+// Champtron: Back → Q2
+window.onboardingChampBack = function() { _obPanel('onboardingQ2'); };
+
+// Close modal (used by "Continue to App" and "Got it" buttons)
+window.onboardingDone = function() { hideOnboardingModal(); };
+
+// ── Billing UI (SPRINT-003) ───────────────────────────────────────────────────
+
+async function checkTierAndShowUpgrade() {
+    if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) return;
+    try {
+        const profile = await ApiClient.get('/profiles/me');
+        window._userProfile = profile;
+        updateTierUI(profile);
+    } catch (err) {
+        console.warn('Could not load profile:', err);
+    }
+}
+
+function updateTierUI(profile) {
+    const subStatus = document.getElementById('subscriptionStatus');
+    const badge = document.getElementById('tierBadge');
+    const manageBtn = document.getElementById('manageBillingBtn');
+
+    if (subStatus) subStatus.style.display = 'flex';
+    if (badge) {
+        badge.textContent = profile.tier === 'pro' ? 'Pro' : 'Free';
+        badge.className = `tier-badge ${profile.tier}`;
+    }
+    if (manageBtn) {
+        manageBtn.style.display = profile.has_active_subscription ? 'inline-flex' : 'none';
+    }
+
+    // Upgrade banner for free users
+    if (profile.tier === 'free') {
+        if (profile.assessments_this_month >= 3) {
+            showUpgradeBanner('limit_reached');
+        } else if (profile.assessments_this_month >= 2) {
+            showUpgradeBanner('approaching_limit');
+        }
+    }
+
+    // Refresh tier badge after checkout return
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+        setTimeout(checkTierAndShowUpgrade, 3000); // webhook may lag slightly
+        window.history.replaceState({}, '', window.location.pathname);
+    }
+}
+
+function showUpgradeBanner(reason) {
+    const banner = document.getElementById('upgradeBanner');
+    const title = document.getElementById('upgradeBannerTitle');
+    const msg = document.getElementById('upgradeBannerMessage');
+    if (!banner) return;
+    if (reason === 'limit_reached') {
+        title.textContent = 'Monthly Limit Reached';
+        msg.textContent = ' — Upgrade to Pro for unlimited assessments + AI Advisor.';
+    } else {
+        const remaining = 3 - (window._userProfile?.assessments_this_month || 0);
+        title.textContent = 'Almost at your free limit';
+        msg.textContent = ` — ${remaining} assessment${remaining === 1 ? '' : 's'} remaining this month.`;
+    }
+    banner.classList.remove('hidden');
+}
+
+async function initiateCheckout(plan) {
+    if (typeof Auth === 'undefined' || !Auth.isLoggedIn()) {
+        if (typeof showAuthModal === 'function') showAuthModal('signup');
+        return;
+    }
+    try {
+        const { checkout_url } = await ApiClient.post('/billing/checkout', {
+            price_id: `price_${plan}`
+        });
+        window.location.href = checkout_url;
+    } catch (err) {
+        if (err && err.status === 409) {
+            alert('You already have an active subscription.');
+        } else {
+            alert('Unable to start checkout. Please try again.');
+        }
+    }
+}
+
+async function openBillingPortal() {
+    try {
+        const { portal_url } = await ApiClient.post('/billing/portal');
+        window.open(portal_url, '_blank');
+    } catch (err) {
+        alert('Unable to open billing portal. Please try again.');
+    }
 }
 
 // ── AI Advisor Streaming (SPRINT-002) ─────────────────────────────────────────
 
-// Show AI advisor panel — only when logged in and assessment is saved
+// Show AI advisor panel — checks tier; shows paywall for free users
 function showAIAdvisor() {
+    const profile = window._userProfile;
+    if (!profile || profile.tier === 'free') {
+        const paywall = document.getElementById('aiAdvisorPaywall');
+        if (paywall) {
+            paywall.classList.remove('hidden');
+            paywall.scrollIntoView({ behavior: 'smooth' });
+        }
+        return;
+    }
     const panel = document.getElementById('aiAdvisorPanel');
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth' });

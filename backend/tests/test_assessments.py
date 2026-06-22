@@ -6,6 +6,22 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 from datetime import datetime, timezone
 
+USER_ID = "00000000-0000-0000-0000-000000000001"
+FREE_PROFILE = {
+    "id": USER_ID, "tier": "free",
+    "assessments_this_month": 0,
+    "month_reset_at": "2026-07-01T00:00:00+00:00",
+}
+
+
+@pytest.fixture(autouse=True)
+def bypass_quota_check(client):
+    """Override check_assessment_quota so assessment tests aren't blocked by tier logic."""
+    from backend.middleware.tier import check_assessment_quota
+    client.app.dependency_overrides[check_assessment_quota] = lambda: FREE_PROFILE
+    yield
+    client.app.dependency_overrides.pop(check_assessment_quota, None)
+
 
 VALID_ASSESSMENT = {
     "business_name": "Bright Path Café",

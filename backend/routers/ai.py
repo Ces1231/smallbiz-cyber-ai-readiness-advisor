@@ -19,6 +19,7 @@ from backend.ai.base import AIProvider
 from backend.ai.factory import get_ai_provider
 from backend.config import settings
 from backend.dependencies import get_current_user, get_supabase_client
+from backend.middleware.tier import require_pro_tier
 from backend.prompts import (
     AssessmentContext,
     build_ai_readiness_advice_prompt,
@@ -311,6 +312,7 @@ async def stream_advice(
     assessment_id: UUID,
     dimension: Dimension,
     current_user: dict = Depends(get_current_user),
+    _profile: dict = Depends(require_pro_tier),
     supabase: Client = Depends(get_supabase_client),
     ai: AIProvider = Depends(get_ai_provider),
 ) -> StreamingResponse:

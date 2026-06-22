@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Champtron Systems LLC</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-search { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+    .admin-search input { flex:1; min-width:220px; border-radius:10px; border:1px solid var(--border); background:#071421; color:var(--text); padding:10px 14px; font-size:0.9rem; outline:none; }
+    .admin-search input:focus { border-color:var(--cyan); }
+    .admin-search input::placeholder { color:var(--muted); }
+    .action-btn { background:rgba(34,211,238,.12); color:var(--cyan); border:1px solid rgba(34,211,238,.3); border-radius:6px; padding:4px 10px; font-size:0.8rem; cursor:pointer; white-space:nowrap; }
+    .action-btn:hover { background:rgba(34,211,238,.22); }
+    .edit-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .edit-overlay.hidden { display:none; }
+    .edit-card { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:28px 28px 24px; width:100%; max-width:420px; position:relative; }
+    .edit-card h3 { margin:0 0 4px; font-size:1.1rem; }
+    .edit-card .edit-email { color:var(--cyan); font-size:0.85rem; margin:0 0 20px; word-break:break-all; }
+    .edit-card label { display:block; font-size:0.85rem; color:var(--muted); margin-bottom:5px; margin-top:14px; }
+    .edit-card label:first-of-type { margin-top:0; }
+    .edit-card input, .edit-card select { width:100%; box-sizing:border-box; border-radius:10px; border:1px solid var(--border); background:#071421; color:var(--text); padding:10px 12px; font-size:0.9rem; outline:none; }
+    .edit-card input:focus, .edit-card select:focus { border-color:var(--cyan); }
+    .edit-actions { display:flex; gap:8px; margin-top:20px; flex-wrap:wrap; }
+    .edit-status { font-size:0.85rem; margin-top:10px; min-height:20px; }
+    .edit-status.ok { color:#4ade80; }
+    .edit-status.err { color:var(--red,#f87171); }
+    .edit-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; line-height:1; }
+    .tier-badge.free { background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:2px 10px; font-size:12px; }
+    .tier-badge.pro, .tier-badge.pro_annual { background:rgba(34,211,238,.15); color:var(--cyan); border:1px solid rgba(34,211,238,.3); border-radius:999px; padding:2px 10px; font-size:12px; }
+    .tier-badge.admin { background:rgba(251,191,36,.15); color:#fbbf24; border:1px solid rgba(251,191,36,.3); border-radius:999px; padding:2px 10px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <header class="hero" style="padding:20px 6vw">
+    <nav>
+      <div class="brand">
+        <strong>Champtron Systems LLC</strong>
+        <span>Admin Dashboard</span>
+      </div>
+      <span id="adminUserEmail" class="muted" style="font-size:13px;"></span>
+      <button class="button secondary" onclick="Auth.logout().then(() => window.location = '/')">Logout</button>
+    </nav>
+  </header>
+
+  <main style="padding:32px 6vw; max-width:1200px; margin:0 auto">
+    <div id="adminGate">
+      <!-- Login form — shown when not authenticated -->
+      <div id="adminLoginBox" style="max-width:380px; margin:60px auto; background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:32px 28px;">
+        <h2 style="margin:0 0 6px; font-size:1.2rem;">Admin Login</h2>
+        <p class="muted" style="margin:0 0 24px; font-size:0.875rem;">Champtron Systems — Admin Portal</p>
+        <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:5px;">Email</label>
+        <input id="adminEmail" type="email" placeholder="admin@example.com" style="width:100%; box-sizing:border-box; margin-bottom:14px;" onkeydown="if(event.key==='Enter') adminLogin()" />
+        <label style="display:block; font-size:0.85rem; color:var(--muted); margin-bottom:5px;">Password</label>
+        <input id="adminPassword" type="password" placeholder="••••••••" style="width:100%; box-sizing:border-box; margin-bottom:20px;" onkeydown="if(event.key==='Enter') adminLogin()" />
+        <button class="button primary" id="adminLoginBtn" onclick="adminLogin()" style="width:100%;">Login</button>
+        <p id="adminLoginError" style="display:none; color:var(--red,#f87171); font-size:0.85rem; margin-top:12px; text-align:center;"></p>
+      </div>
+    </div>
+
+    <div id="adminContent" style="display:none">
+
+      <!-- Metrics -->
+      <h2>Platform Overview</h2>
+      <div class="dashboard-grid" id="metricsGrid" style="gap:16px; margin-bottom:40px;"></div>
+
+      <!-- Users -->
+      <h2 style="margin-bottom:16px;">Users</h2>
+
+      <!-- Search + tier filter + add user -->
+      <div class="admin-search">
+        <input id="adminSearchInput" type="text" placeholder="Search by email or business name…" oninput="scheduleSearch()" />
+        <button class="button secondary small" onclick="applyTierFilter(null)">All</button>
+        <button class="button secondary small" onclick="applyTierFilter('free')">Free</button>
+        <button class="button secondary small" onclick="applyTierFilter('pro')">Pro</button>
+        <button class="button secondary small" onclick="applyTierFilter('pro_annual')">Pro Annual</button>
+        <button class="button secondary small" onclick="applyTierFilter('admin')">Admin</button>
+        <button class="button secondary small" onclick="exportUsers()">Export CSV</button>
+        <button class="button primary small" onclick="openAddUserModal()" style="margin-left:auto;">+ Add User</button>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="risk-table" style="width:100%">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Business Name</th>
+              <th>Tier</th>
+              <th>Assessments</th>
+              <th>Member Since</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="6" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="usersPagination" style="display:flex; gap:12px; margin-top:16px;"></div>
+    </div>
+  </main>
+
+  <!-- Edit User Modal -->
+  <div id="editOverlay" class="edit-overlay hidden">
+    <div class="edit-card">
+      <button class="edit-close" onclick="closeEditModal()">&#x2715;</button>
+      <h3>Edit User</h3>
+      <p id="editEmail" class="edit-email"></p>
+
+      <label>Business Name</label>
+      <input id="editBusinessName" type="text" placeholder="Business name" maxlength="120" />
+
+      <label>Tier</label>
+      <select id="editTier">
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="pro_annual">Pro Annual</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <div class="edit-actions">
+        <button class="button primary" onclick="saveUser()" id="editSaveBtn">Save Changes</button>
+        <button class="button secondary" onclick="resetPassword()" id="editResetBtn">Reset Password</button>
+        <button class="button ghost" onclick="closeEditModal()">Cancel</button>
+      </div>
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+        <button id="editDeleteBtn" onclick="deleteUser()" style="background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.3); border-radius:8px; padding:7px 16px; font-size:0.85rem; cursor:pointer; width:100%;">Delete Account Permanently</button>
+      </div>
+      <p id="editStatus" class="edit-status"></p>
+      <div id="editAssessments" style="display:none; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+        <h4 style="margin:0 0 10px; font-size:0.9rem; color:var(--muted);">Assessment History</h4>
+        <div id="editAssessmentList" style="font-size:0.82rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="addUserOverlay" class="edit-overlay hidden">
+    <div class="edit-card">
+      <button class="edit-close" onclick="closeAddUserModal()">&#x2715;</button>
+      <h3 style="margin:0 0 20px;">Add New User</h3>
+
+      <label>Email *</label>
+      <input id="newUserEmail" type="email" placeholder="user@example.com" />
+
+      <label>Password *</label>
+      <input id="newUserPassword" type="password" placeholder="Min 6 characters" />
+
+      <label>Business Name</label>
+      <input id="newUserBusiness" type="text" placeholder="Optional" maxlength="120" />
+
+      <label>Tier</label>
+      <select id="newUserTier">
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="pro_annual">Pro Annual</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <div class="edit-actions" style="margin-top:20px;">
+        <button class="button primary" onclick="createUser()" id="addUserBtn">Create Account</button>
+        <button class="button ghost" onclick="closeAddUserModal()">Cancel</button>
+      </div>
+      <p id="addUserStatus" class="edit-status"></p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="api-client.js"></script>
+  <script>
+    const PAGE_SIZE = 20;
+    let _offset = 0;
+    let _tierFilter = null;
+    let _searchTimer = null;
+    let _editingUserId = null;
+
+    // ── Metrics ───────────────────────────────────────────────────────────────
+
+    async function loadMetrics() {
+      const grid = document.getElementById('metricsGrid');
+      try {
+        const m = await ApiClient.get('/admin/metrics');
+        const cards = [
+          { label: 'Total Users',            value: m.total_users },
+          { label: 'Free Users',             value: m.free_users },
+          { label: 'Pro Users',              value: m.pro_users },
+          { label: 'Pro Annual Users',       value: m.pro_annual_users },
+          { label: 'Admin Users',            value: m.admin_users },
+          { label: 'Total Assessments',      value: m.total_assessments },
+          { label: 'Assessments This Month', value: m.assessments_this_month },
+          { label: 'AI Requests This Month', value: m.ai_advice_requests_this_month },
+          { label: 'Avg Overall Score',      value: `${m.average_overall_score}%` },
+          { label: 'Top Industry',           value: m.most_common_industry },
+        ];
+        grid.innerHTML = cards.map(c => `
+          <div class="score-card" style="text-align:center;padding:20px 16px">
+            <div style="font-size:2rem;font-weight:700;color:var(--cyan)">${c.value}</div>
+            <div class="muted" style="font-size:13px;margin-top:6px">${c.label}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        grid.innerHTML = '<p class="muted">Unable to load metrics.</p>';
+      }
+    }
+
+    // ── User List ─────────────────────────────────────────────────────────────
+
+    function exportUsers() {
+      const token = Auth.getToken();
+      const base = window.ADVISOR_API_URL || 'http://localhost:8000';
+      const a = document.createElement('a');
+      a.href = `${base}/admin/users/export`;
+      a.download = 'users.csv';
+      // Inject token via a hidden form POST isn't possible for file download; use fetch + blob
+      fetch(`${base}/admin/users/export`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'users.csv';
+          link.click();
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => alert('Failed to export users.'));
+    }
+
+    function scheduleSearch() {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => loadUsers(0), 350);
+    }
+
+    function applyTierFilter(tier) {
+      _tierFilter = tier;
+      loadUsers(0);
+    }
+
+    async function loadUsers(offset) {
+      _offset = offset;
+      const tbody = document.getElementById('usersTableBody');
+      const pager = document.getElementById('usersPagination');
+      tbody.innerHTML = '<tr><td colspan="6" class="muted">Loading…</td></tr>';
+
+      const search = document.getElementById('adminSearchInput').value.trim();
+      const qs = new URLSearchParams({ limit: PAGE_SIZE, offset });
+      if (_tierFilter) qs.set('tier', _tierFilter);
+      if (search) qs.set('search', search);
+
+      try {
+        const { data, meta } = await ApiClient.get(`/admin/users?${qs}`);
+        if (!data.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="muted">No users found.</td></tr>';
+          pager.innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.map(u => `
+          <tr>
+            <td style="font-size:13px;">${u.email || '<span class="muted">—</span>'}</td>
+            <td>${u.business_name || '<span class="muted">—</span>'}</td>
+            <td><span class="tier-badge ${u.tier}">${{free:'Free',pro:'Pro',pro_annual:'Pro Annual',admin:'Admin'}[u.tier]||u.tier}</span></td>
+            <td>${u.assessments_this_month}</td>
+            <td style="font-size:13px;">${new Date(u.created_at).toLocaleDateString()}</td>
+            <td><button class="action-btn" onclick="openEditModal('${u.id}')">Edit</button></td>
+          </tr>
+        `).join('');
+
+        pager.innerHTML = '';
+        if (offset > 0) {
+          const prev = document.createElement('button');
+          prev.className = 'button secondary small';
+          prev.textContent = 'Previous';
+          prev.onclick = () => loadUsers(offset - PAGE_SIZE);
+          pager.appendChild(prev);
+        }
+        if (meta.has_more) {
+          const next = document.createElement('button');
+          next.className = 'button secondary small';
+          next.textContent = 'Next';
+          next.onclick = () => loadUsers(offset + PAGE_SIZE);
+          pager.appendChild(next);
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" class="muted">Unable to load users.</td></tr>';
+      }
+    }
+
+    // ── Edit Modal ────────────────────────────────────────────────────────────
+
+    async function openEditModal(userId) {
+      _editingUserId = userId;
+      const overlay = document.getElementById('editOverlay');
+      const emailEl = document.getElementById('editEmail');
+      const nameEl = document.getElementById('editBusinessName');
+      const tierEl = document.getElementById('editTier');
+      const statusEl = document.getElementById('editStatus');
+      const saveBtn = document.getElementById('editSaveBtn');
+      const resetBtn = document.getElementById('editResetBtn');
+      const deleteBtn = document.getElementById('editDeleteBtn');
+
+      // Reset all button and status state before showing
+      emailEl.textContent = 'Loading…';
+      nameEl.value = '';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+      if (resetBtn) { resetBtn.disabled = false; resetBtn.textContent = 'Reset Password'; }
+      if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = 'Delete Account Permanently'; }
+      document.getElementById('editAssessments').style.display = 'none';
+      document.getElementById('editAssessmentList').innerHTML = '';
+      overlay.classList.remove('hidden');
+
+      try {
+        const user = await ApiClient.get(`/admin/users/${userId}`);
+        emailEl.textContent = user.email || '(no email)';
+        nameEl.value = user.business_name || '';
+        tierEl.value = user.tier || 'free';
+      } catch (err) {
+        emailEl.textContent = 'Failed to load user.';
+      }
+
+      // Load assessment history
+      const assessDiv = document.getElementById('editAssessments');
+      const assessList = document.getElementById('editAssessmentList');
+      try {
+        const data = await ApiClient.get(`/admin/users/${userId}/assessments`);
+        if (data.assessments && data.assessments.length > 0) {
+          assessList.innerHTML = data.assessments.map(a => {
+            const date = new Date(a.created_at).toLocaleDateString();
+            return `<div style="padding:6px 0; border-bottom:1px solid var(--border);">
+              <span style="color:var(--text)">${a.industry || '—'}</span>
+              <span style="float:right; color:var(--muted)">${a.overall_score ?? '—'}% &bull; ${date}</span>
+            </div>`;
+          }).join('');
+          assessDiv.style.display = 'block';
+        } else {
+          assessList.innerHTML = '<span style="color:var(--muted)">No assessments yet.</span>';
+          assessDiv.style.display = 'block';
+        }
+      } catch (_) {
+        assessDiv.style.display = 'none';
+      }
+    }
+
+    function closeEditModal() {
+      document.getElementById('editOverlay').classList.add('hidden');
+      _editingUserId = null;
+    }
+
+    async function saveUser() {
+      if (!_editingUserId) return;
+      const saveBtn = document.getElementById('editSaveBtn');
+      const statusEl = document.getElementById('editStatus');
+      const business_name = document.getElementById('editBusinessName').value.trim();
+      const tier = document.getElementById('editTier').value;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        await ApiClient.patch(`/admin/users/${_editingUserId}`, { tier, business_name });
+        statusEl.textContent = 'Saved successfully.';
+        statusEl.className = 'edit-status ok';
+        loadUsers(_offset);
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to save.';
+        statusEl.className = 'edit-status err';
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    }
+
+    async function resetPassword() {
+      if (!_editingUserId) return;
+      const resetBtn = document.getElementById('editResetBtn');
+      const statusEl = document.getElementById('editStatus');
+
+      if (!confirm('Send a temporary password to this user\'s email?')) return;
+
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Sending…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        const result = await ApiClient.post(`/admin/users/${_editingUserId}/reset-password`, {});
+        statusEl.textContent = result.message || 'Temporary password sent.';
+        statusEl.className = 'edit-status ok';
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to reset password.';
+        statusEl.className = 'edit-status err';
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Reset Password';
+      }
+    }
+
+    // ── Add User Modal ────────────────────────────────────────────────────────
+
+    function openAddUserModal() {
+      document.getElementById('newUserEmail').value = '';
+      document.getElementById('newUserPassword').value = '';
+      document.getElementById('newUserBusiness').value = '';
+      document.getElementById('newUserTier').value = 'free';
+      document.getElementById('addUserStatus').textContent = '';
+      document.getElementById('addUserStatus').className = 'edit-status';
+      document.getElementById('addUserBtn').disabled = false;
+      document.getElementById('addUserBtn').textContent = 'Create Account';
+      document.getElementById('addUserOverlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('newUserEmail').focus(), 50);
+    }
+
+    function closeAddUserModal() {
+      document.getElementById('addUserOverlay').classList.add('hidden');
+    }
+
+    async function createUser() {
+      const email = document.getElementById('newUserEmail').value.trim();
+      const password = document.getElementById('newUserPassword').value;
+      const business_name = document.getElementById('newUserBusiness').value.trim();
+      const tier = document.getElementById('newUserTier').value;
+      const btn = document.getElementById('addUserBtn');
+      const statusEl = document.getElementById('addUserStatus');
+
+      if (!email || !password) {
+        statusEl.textContent = 'Email and password are required.';
+        statusEl.className = 'edit-status err';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        const result = await ApiClient.post('/admin/users', { email, password, business_name, tier });
+        statusEl.textContent = `Account created for ${result.email}.`;
+        statusEl.className = 'edit-status ok';
+        btn.textContent = 'Created!';
+        loadUsers(_offset);
+        setTimeout(closeAddUserModal, 1800);
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to create user.';
+        statusEl.className = 'edit-status err';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    // ── Delete User ───────────────────────────────────────────────────────────
+
+    async function deleteUser() {
+      if (!_editingUserId) return;
+      const email = document.getElementById('editEmail').textContent;
+      if (!confirm(`Permanently delete ${email}?\n\nThis removes all their data and cannot be undone.`)) return;
+
+      const btn = document.getElementById('editDeleteBtn');
+      const statusEl = document.getElementById('editStatus');
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      statusEl.textContent = '';
+      statusEl.className = 'edit-status';
+
+      try {
+        const result = await ApiClient.delete(`/admin/users/${_editingUserId}`);
+        btn.disabled = false;
+        btn.textContent = 'Delete Account Permanently';
+        closeEditModal();
+        loadUsers(_offset);
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to delete user.';
+        statusEl.className = 'edit-status err';
+        btn.disabled = false;
+        btn.textContent = 'Delete Account Permanently';
+      }
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+
+    async function adminLogin() {
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const btn = document.getElementById('adminLoginBtn');
+      const errEl = document.getElementById('adminLoginError');
+
+      if (!email || !password) {
+        errEl.textContent = 'Please enter your email and password.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+      errEl.style.display = 'none';
+
+      try {
+        await Auth.login(email, password);
+        await loadAdminDashboard();
+      } catch (err) {
+        errEl.textContent = err.message || 'Login failed. Check your credentials.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    }
+
+    async function loadAdminDashboard() {
+      const gate = document.getElementById('adminGate');
+      const content = document.getElementById('adminContent');
+      const errEl = document.getElementById('adminLoginError');
+
+      let profile;
+      try {
+        profile = await ApiClient.get('/profiles/me');
+      } catch (err) {
+        if (errEl) { errEl.textContent = 'Unable to verify access. Try again.'; errEl.style.display = 'block'; }
+        const btn = document.getElementById('adminLoginBtn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+        return;
+      }
+
+      if (profile.tier !== 'admin') {
+        if (errEl) {
+          errEl.textContent = 'Admin access required. This account does not have admin privileges.';
+          errEl.style.display = 'block';
+        }
+        const btn = document.getElementById('adminLoginBtn');
+        if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+        Auth.logout();
+        return;
+      }
+
+      gate.style.display = 'none';
+      content.style.display = 'block';
+      document.getElementById('adminUserEmail').textContent = Auth.getUser()?.email || profile.email || '';
+      await Promise.all([loadMetrics(), loadUsers(0)]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already logged in from another page, skip the login form
+      if (Auth.isLoggedIn()) {
+        document.getElementById('adminLoginBox').style.display = 'none';
+        loadAdminDashboard();
+      }
+    });
+  </script>
+</body>
+</html>
