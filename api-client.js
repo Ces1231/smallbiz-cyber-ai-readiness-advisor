@@ -31,6 +31,7 @@ const ApiClient = (() => {
     return {
         get:    (path)        => request('GET',    path),
         post:   (path, body)  => request('POST',   path, body),
+        patch:  (path, body)  => request('PATCH',  path, body),
         delete: (path)        => request('DELETE', path),
     };
 })();

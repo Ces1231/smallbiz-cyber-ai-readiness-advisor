@@ -3,9 +3,12 @@ SmallBiz Advisor — Auth Router
 Endpoints: /auth/signup, /auth/login, /auth/logout, /auth/me
 Uses Supabase Auth as the identity provider.
 """
+import asyncio
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
+
+from backend.email_helper import send_signup_notification_email
 
 from backend.dependencies import get_supabase_client, get_current_user, get_token
 from backend.schemas.auth import (
@@ -69,6 +72,13 @@ async def signup(
         )
 
     log.info("user_created", user_id=str(result.user.id))
+    asyncio.create_task(
+        send_signup_notification_email(
+            user_email=body.email,
+            business_name=body.business_name or "",
+            user_id=str(result.user.id),
+        )
+    )
     # When GOTRUE_MAILER_AUTOCONFIRM=true the session is immediately available —
     # return the token so the client can skip the email-confirm step.
     if result.session and result.session.access_token:
