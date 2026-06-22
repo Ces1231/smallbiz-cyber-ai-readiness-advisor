@@ -19,7 +19,7 @@ git init
 git add .
 git commit -m "Initial release of Champ Compass"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/champ-compass.git
+git remote add origin https://github.com/Ces1231/champ-compass.git
 git push -u origin main
 ```
 
@@ -38,7 +38,7 @@ git push -u origin main
 Your link should look like:
 
 ```text
-https://YOUR-USERNAME.github.io/champ-compass/
+https://ces1231.github.io/champ-compass/
 ```
 
 Use that URL as your live demo link if you do not use Serverbyt.
