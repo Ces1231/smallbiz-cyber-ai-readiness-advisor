@@ -74,15 +74,17 @@ async def get_metrics(
     now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    total_users = free_users = pro_users = 0
+    total_users = free_users = pro_users = pro_annual_users = admin_users = 0
     try:
         total_result = supabase.table("user_profiles").select("*", count="exact").execute()
         total_users = total_result.count or 0
-        free_result = (
-            supabase.table("user_profiles").select("*", count="exact").eq("tier", "free").execute()
-        )
+        free_result = supabase.table("user_profiles").select("*", count="exact").eq("tier", "free").execute()
         free_users = free_result.count or 0
-        pro_users = total_users - free_users
+        pro_result = supabase.table("user_profiles").select("*", count="exact").eq("tier", "pro").execute()
+        pro_users = pro_result.count or 0
+        pro_annual_result = supabase.table("user_profiles").select("*", count="exact").eq("tier", "pro_annual").execute()
+        pro_annual_users = pro_annual_result.count or 0
+        admin_users = total_users - free_users - pro_users - pro_annual_users
     except Exception as exc:
         log.error("admin_metrics_user_count_error", error=str(exc))
 
@@ -133,6 +135,8 @@ async def get_metrics(
         "total_users": total_users,
         "free_users": free_users,
         "pro_users": pro_users,
+        "pro_annual_users": pro_annual_users,
+        "admin_users": admin_users,
         "total_assessments": total_assessments,
         "assessments_this_month": assessments_this_month,
         "most_common_industry": most_common_industry,
@@ -433,3 +437,71 @@ async def delete_user(
 
     log.info("admin_user_deleted", user_id=user_id, email=user_email)
     return {"message": f"User {user_email or user_id} deleted."}
+
+
+# ── GET /admin/users/export ────────────────────────────────────────────────────
+
+@router.get("/users/export", status_code=200)
+async def export_users_csv(
+    _profile: dict = Depends(require_admin_tier),
+    supabase: Client = Depends(get_supabase_client),
+):
+    """Export all users as CSV. Admin tier required."""
+    import csv, io
+    from fastapi.responses import StreamingResponse
+
+    email_map = _build_email_map(supabase)
+    try:
+        result = supabase.table("user_profiles").select(
+            "id, business_name, tier, assessments_this_month, created_at"
+        ).order("created_at", desc=True).execute()
+        rows = result.data or []
+    except Exception as exc:
+        log.error("admin_export_error", error=str(exc))
+        raise HTTPException(status_code=500, detail={"error": "export_failed", "message": "Failed to export users.", "details": {}})
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["user_id", "email", "business_name", "tier", "assessments_this_month", "member_since"])
+    for r in rows:
+        writer.writerow([
+            r.get("id", ""),
+            email_map.get(r.get("id", ""), ""),
+            r.get("business_name", ""),
+            r.get("tier", ""),
+            r.get("assessments_this_month", 0),
+            r.get("created_at", ""),
+        ])
+    buf.seek(0)
+    log.info("admin_users_exported", count=len(rows))
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=users.csv"},
+    )
+
+
+# ── GET /admin/users/{user_id}/assessments ─────────────────────────────────────
+
+@router.get("/users/{user_id}/assessments", status_code=200)
+async def get_user_assessments(
+    user_id: str,
+    _profile: dict = Depends(require_admin_tier),
+    supabase: Client = Depends(get_supabase_client),
+) -> dict:
+    """Return assessment history for a user. Admin tier required."""
+    try:
+        result = (
+            supabase.table("assessments")
+            .select("id, industry, overall_score, cyber_score, ai_score, funding_score, created_at")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(20)
+            .execute()
+        )
+        assessments = result.data or []
+    except Exception as exc:
+        log.error("admin_user_assessments_error", user_id=user_id, error=str(exc))
+        raise HTTPException(status_code=500, detail={"error": "fetch_failed", "message": "Failed to fetch assessments.", "details": {}})
+    log.info("admin_user_assessments_fetched", user_id=user_id, count=len(assessments))
+    return {"assessments": assessments, "total": len(assessments)}

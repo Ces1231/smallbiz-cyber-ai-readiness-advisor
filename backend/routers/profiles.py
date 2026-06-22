@@ -10,7 +10,7 @@ from supabase import Client
 
 from backend.dependencies import get_current_user, get_supabase_client
 from backend.middleware.tier import _get_or_create_profile
-from backend.schemas.profiles import ProfileResponse
+from backend.schemas.profiles import ProfileResponse, ProfileUpdateRequest
 
 router = APIRouter()
 log = structlog.get_logger()
@@ -77,3 +77,27 @@ async def get_my_profile(
         month_reset_at=reset_dt,
         has_active_subscription=has_active_sub,
     )
+
+
+@router.patch("/me", response_model=ProfileResponse, status_code=200)
+async def update_my_profile(
+    body: ProfileUpdateRequest,
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_client),
+) -> ProfileResponse:
+    """Update the current user's editable profile fields (business name)."""
+    user_id = current_user["id"]
+    updates = {}
+    if body.business_name is not None:
+        updates["business_name"] = body.business_name
+    if not updates:
+        raise HTTPException(status_code=400, detail={"error": "no_fields", "message": "No fields to update.", "details": {}})
+    try:
+        supabase.table("user_profiles").update(updates).eq("id", user_id).execute()
+        # Sync to GoTrue metadata so business_name stays consistent
+        supabase.auth.admin.update_user_by_id(user_id, {"data": {"business_name": body.business_name}})
+        log.info("profile_updated", user_id=user_id, fields=list(updates.keys()))
+    except Exception as exc:
+        log.error("profile_update_error", user_id=user_id, error=str(exc))
+        raise HTTPException(status_code=500, detail={"error": "update_failed", "message": "Failed to update profile.", "details": {}})
+    return await get_my_profile(current_user=current_user, supabase=supabase)

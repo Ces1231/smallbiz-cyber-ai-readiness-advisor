@@ -28,6 +28,7 @@
           <span id="tierBadge" class="tier-badge"></span>
           <button class="button secondary small" onclick="openBillingPortal()" id="manageBillingBtn" style="display:none">Manage Billing</button>
         </div>
+        <button class="button secondary small" onclick="showSettingsModal()">Settings</button>
         <button class="button secondary" onclick="Auth.logout().then(refreshAuthUI)">Logout</button>
       </div>
     </nav>
@@ -525,6 +526,54 @@
         <span id="authSwitchText">Don't have an account?</span>
         <a href="#" onclick="toggleAuthMode(); return false;">Sign up free</a>
       </p>
+      <p id="forgotPasswordRow" class="muted" style="text-align:center; margin-top:8px; font-size:13px;">
+        <a href="#" onclick="showForgotPasswordModal(); return false;">Forgot password?</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeForgotModal()">&#x00D7;</button>
+      <h3>Reset Password</h3>
+      <p class="muted" style="margin-bottom:16px; font-size:14px;">Enter your email and we'll send a reset link.</p>
+      <label>Email <input id="forgotEmail" type="email" required /></label>
+      <p id="forgotMsg" class="error-text hidden"></p>
+      <button class="button primary wide" onclick="submitForgotPassword()">Send Reset Link</button>
+    </div>
+  </div>
+
+  <!-- Account Settings Modal -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeSettingsModal()">&#x00D7;</button>
+      <h3>Account Settings</h3>
+      <div style="border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:20px;">
+        <h4 style="margin:0 0 12px; font-size:0.95rem;">Update Business Name</h4>
+        <label>Business Name <input id="settingsBusinessName" type="text" maxlength="120" placeholder="Your business name" /></label>
+        <p id="settingsNameMsg" class="error-text hidden"></p>
+        <button class="button primary" style="margin-top:8px" onclick="saveSettingsName()">Save Name</button>
+      </div>
+      <div>
+        <h4 style="margin:0 0 12px; font-size:0.95rem;">Change Password</h4>
+        <label>New Password <input id="settingsNewPassword" type="password" minlength="8" placeholder="Min 8 chars, 1 uppercase, 1 number" /></label>
+        <label>Confirm Password <input id="settingsConfirmPassword" type="password" placeholder="Repeat new password" /></label>
+        <p id="settingsPasswordMsg" class="error-text hidden"></p>
+        <button class="button primary" style="margin-top:8px" onclick="saveSettingsPassword()">Change Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Reset (from email link) Modal -->
+  <div id="resetModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3>Set New Password</h3>
+      <p class="muted" style="margin-bottom:16px; font-size:14px;">Choose a new password for your account.</p>
+      <label>New Password <input id="resetNewPassword" type="password" minlength="8" placeholder="Min 8 chars, 1 uppercase, 1 number" /></label>
+      <label>Confirm Password <input id="resetConfirmPassword" type="password" placeholder="Repeat new password" /></label>
+      <p id="resetMsg" class="error-text hidden"></p>
+      <button class="button primary wide" onclick="submitResetPassword()">Set Password</button>
     </div>
   </div>
 

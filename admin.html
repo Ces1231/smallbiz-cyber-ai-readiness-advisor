@@ -73,7 +73,9 @@
         <button class="button secondary small" onclick="applyTierFilter(null)">All</button>
         <button class="button secondary small" onclick="applyTierFilter('free')">Free</button>
         <button class="button secondary small" onclick="applyTierFilter('pro')">Pro</button>
+        <button class="button secondary small" onclick="applyTierFilter('pro_annual')">Pro Annual</button>
         <button class="button secondary small" onclick="applyTierFilter('admin')">Admin</button>
+        <button class="button secondary small" onclick="exportUsers()">Export CSV</button>
         <button class="button primary small" onclick="openAddUserModal()" style="margin-left:auto;">+ Add User</button>
       </div>
 
@@ -125,6 +127,10 @@
         <button id="editDeleteBtn" onclick="deleteUser()" style="background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.3); border-radius:8px; padding:7px 16px; font-size:0.85rem; cursor:pointer; width:100%;">Delete Account Permanently</button>
       </div>
       <p id="editStatus" class="edit-status"></p>
+      <div id="editAssessments" style="display:none; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+        <h4 style="margin:0 0 10px; font-size:0.9rem; color:var(--muted);">Assessment History</h4>
+        <div id="editAssessmentList" style="font-size:0.82rem;"></div>
+      </div>
     </div>
   </div>
 
@@ -179,6 +185,8 @@
           { label: 'Total Users',            value: m.total_users },
           { label: 'Free Users',             value: m.free_users },
           { label: 'Pro Users',              value: m.pro_users },
+          { label: 'Pro Annual Users',       value: m.pro_annual_users },
+          { label: 'Admin Users',            value: m.admin_users },
           { label: 'Total Assessments',      value: m.total_assessments },
           { label: 'Assessments This Month', value: m.assessments_this_month },
           { label: 'AI Requests This Month', value: m.ai_advice_requests_this_month },
@@ -197,6 +205,26 @@
     }
 
     // ── User List ─────────────────────────────────────────────────────────────
+
+    function exportUsers() {
+      const token = Auth.getToken();
+      const base = window.ADVISOR_API_URL || 'http://localhost:8000';
+      const a = document.createElement('a');
+      a.href = `${base}/admin/users/export`;
+      a.download = 'users.csv';
+      // Inject token via a hidden form POST isn't possible for file download; use fetch + blob
+      fetch(`${base}/admin/users/export`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'users.csv';
+          link.click();
+          URL.revokeObjectURL(url);
+        })
+        .catch(() => alert('Failed to export users.'));
+    }
 
     function scheduleSearch() {
       clearTimeout(_searchTimer);
@@ -231,7 +259,7 @@
           <tr>
             <td style="font-size:13px;">${u.email || '<span class="muted">—</span>'}</td>
             <td>${u.business_name || '<span class="muted">—</span>'}</td>
-            <td><span class="tier-badge ${u.tier}">${u.tier}</span></td>
+            <td><span class="tier-badge ${u.tier}">${{free:'Free',pro:'Pro',pro_annual:'Pro Annual',admin:'Admin'}[u.tier]||u.tier}</span></td>
             <td>${u.assessments_this_month}</td>
             <td style="font-size:13px;">${new Date(u.created_at).toLocaleDateString()}</td>
             <td><button class="action-btn" onclick="openEditModal('${u.id}')">Edit</button></td>
@@ -267,11 +295,20 @@
       const nameEl = document.getElementById('editBusinessName');
       const tierEl = document.getElementById('editTier');
       const statusEl = document.getElementById('editStatus');
+      const saveBtn = document.getElementById('editSaveBtn');
+      const resetBtn = document.getElementById('editResetBtn');
+      const deleteBtn = document.getElementById('editDeleteBtn');
 
+      // Reset all button and status state before showing
       emailEl.textContent = 'Loading…';
       nameEl.value = '';
       statusEl.textContent = '';
       statusEl.className = 'edit-status';
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+      if (resetBtn) { resetBtn.disabled = false; resetBtn.textContent = 'Reset Password'; }
+      if (deleteBtn) { deleteBtn.disabled = false; deleteBtn.textContent = 'Delete Account Permanently'; }
+      document.getElementById('editAssessments').style.display = 'none';
+      document.getElementById('editAssessmentList').innerHTML = '';
       overlay.classList.remove('hidden');
 
       try {
@@ -281,6 +318,28 @@
         tierEl.value = user.tier || 'free';
       } catch (err) {
         emailEl.textContent = 'Failed to load user.';
+      }
+
+      // Load assessment history
+      const assessDiv = document.getElementById('editAssessments');
+      const assessList = document.getElementById('editAssessmentList');
+      try {
+        const data = await ApiClient.get(`/admin/users/${userId}/assessments`);
+        if (data.assessments && data.assessments.length > 0) {
+          assessList.innerHTML = data.assessments.map(a => {
+            const date = new Date(a.created_at).toLocaleDateString();
+            return `<div style="padding:6px 0; border-bottom:1px solid var(--border);">
+              <span style="color:var(--text)">${a.industry || '—'}</span>
+              <span style="float:right; color:var(--muted)">${a.overall_score ?? '—'}% &bull; ${date}</span>
+            </div>`;
+          }).join('');
+          assessDiv.style.display = 'block';
+        } else {
+          assessList.innerHTML = '<span style="color:var(--muted)">No assessments yet.</span>';
+          assessDiv.style.display = 'block';
+        }
+      } catch (_) {
+        assessDiv.style.display = 'none';
       }
     }
 
@@ -409,6 +468,8 @@
 
       try {
         const result = await ApiClient.delete(`/admin/users/${_editingUserId}`);
+        btn.disabled = false;
+        btn.textContent = 'Delete Account Permanently';
         closeEditModal();
         loadUsers(_offset);
       } catch (err) {

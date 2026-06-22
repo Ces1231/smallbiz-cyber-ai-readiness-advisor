@@ -23,6 +23,25 @@ async def send_advisor_notification_email(user_email: str, request_id: str) -> N
     await _dispatch_email(subject, body, to=settings.admin_notification_email, reply_to=user_email)
 
 
+async def send_welcome_email(user_email: str, business_name: str) -> None:
+    """Send a welcome email to a new user after signup."""
+    name = business_name or "there"
+    subject = "Welcome to SmallBiz Advisor!"
+    body = (
+        f"Hi {name},\n\n"
+        f"Welcome to SmallBiz Advisor! Your account is ready.\n\n"
+        f"Here's what you can do right now:\n"
+        f"  • Take the Cyber & AI Readiness Assessment\n"
+        f"  • Explore business ideas with the Dream Builder\n"
+        f"  • Get AI-powered advice on your results\n\n"
+        f"Log in any time at: http://localhost\n\n"
+        f"Questions? Reply to this email — we're happy to help.\n\n"
+        f"— The SmallBiz Advisor Team\n"
+        f"  Champtron Systems LLC"
+    )
+    await _dispatch_email(subject, body, to=user_email, reply_to=settings.admin_notification_email)
+
+
 async def send_signup_notification_email(user_email: str, business_name: str, user_id: str) -> None:
     """Notify admin when a new user signs up."""
     subject = "New User Signup — SmallBiz Advisor"

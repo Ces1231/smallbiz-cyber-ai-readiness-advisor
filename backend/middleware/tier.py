@@ -50,10 +50,10 @@ async def require_pro_tier(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_client),
 ) -> dict:
-    """Raises HTTP 403 if user tier is not 'pro' or 'admin'."""
+    """Raises HTTP 403 if user tier is not 'pro', 'pro_annual', or 'admin'."""
     user_id = current_user["id"]
     profile = await _get_or_create_profile(user_id, supabase)
-    if profile.get("tier") not in ("pro", "admin"):
+    if profile.get("tier") not in ("pro", "pro_annual", "admin"):
         log.info("tier_required_denied", user_id=user_id, tier=profile.get("tier"))
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -97,8 +97,8 @@ async def check_assessment_quota(
     user_id = current_user["id"]
     profile = await _get_or_create_profile(user_id, supabase)
 
-    # Pro/admin: no limit
-    if profile.get("tier") in ("pro", "admin"):
+    # Pro/pro_annual/admin: no limit
+    if profile.get("tier") in ("pro", "pro_annual", "admin"):
         return profile
 
     # Check if the monthly counter has rolled over
@@ -154,7 +154,7 @@ async def check_assessment_quota(
 async def increment_assessment_count(profile: dict, supabase: Client) -> None:
     """Increment assessments_this_month for free-tier users after a successful save."""
     user_id = profile.get("id")
-    if not user_id or profile.get("tier") in ("pro", "admin"):
+    if not user_id or profile.get("tier") in ("pro", "pro_annual", "admin"):
         return
     new_count = profile.get("assessments_this_month", 0) + 1
     try:

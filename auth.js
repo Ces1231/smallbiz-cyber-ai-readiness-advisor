@@ -133,18 +133,21 @@ function _setAuthMode(mode) {
     const switchText = document.getElementById('authSwitchText');
     const switchLink = document.querySelector('.switch-link a');
 
+    const forgotRow = document.getElementById('forgotPasswordRow');
     if (mode === 'signup') {
         if (title) title.textContent = 'Create Account';
         if (businessRow) businessRow.style.display = '';
         if (submitBtn) submitBtn.textContent = 'Create Account';
         if (switchText) switchText.textContent = 'Already have an account?';
         if (switchLink) switchLink.textContent = 'Log in';
+        if (forgotRow) forgotRow.style.display = 'none';
     } else {
         if (title) title.textContent = 'Login';
         if (businessRow) businessRow.style.display = 'none';
         if (submitBtn) submitBtn.textContent = 'Login';
         if (switchText) switchText.textContent = "Don't have an account?";
         if (switchLink) switchLink.textContent = 'Sign up free';
+        if (forgotRow) forgotRow.style.display = '';
     }
 }
 
@@ -222,7 +225,132 @@ function refreshAuthUI() {
     }
 }
 
-// Close modal on overlay click
+// ── Forgot Password ────────────────────────────────────────────────────────────
+
+function showForgotPasswordModal() {
+    closeAuthModal();
+    const modal = document.getElementById('forgotModal');
+    if (modal) modal.classList.remove('hidden');
+    document.getElementById('forgotEmail')?.focus();
+}
+
+function closeForgotModal() {
+    const modal = document.getElementById('forgotModal');
+    if (modal) modal.classList.add('hidden');
+    const msg = document.getElementById('forgotMsg');
+    if (msg) { msg.textContent = ''; msg.classList.add('hidden'); }
+}
+
+async function submitForgotPassword() {
+    const email = document.getElementById('forgotEmail')?.value?.trim();
+    const msg = document.getElementById('forgotMsg');
+    if (!email) { if (msg) { msg.textContent = 'Please enter your email.'; msg.classList.remove('hidden'); } return; }
+    try {
+        await ApiClient.post('/auth/forgot-password', { email });
+        if (msg) { msg.textContent = 'Reset link sent! Check your inbox.'; msg.style.color = 'var(--green)'; msg.classList.remove('hidden'); }
+    } catch (err) {
+        if (msg) { msg.textContent = err.message || 'Failed to send reset link.'; msg.style.color = ''; msg.classList.remove('hidden'); }
+    }
+}
+
+// ── Account Settings ───────────────────────────────────────────────────────────
+
+function showSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+    // Pre-fill business name from profile if available
+    const nameInput = document.getElementById('settingsBusinessName');
+    if (nameInput && typeof _cachedProfile !== 'undefined' && _cachedProfile?.business_name) {
+        nameInput.value = _cachedProfile.business_name;
+    }
+    ['settingsNameMsg', 'settingsPasswordMsg'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.classList.add('hidden'); }
+    });
+    modal.classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function saveSettingsName() {
+    const name = document.getElementById('settingsBusinessName')?.value?.trim();
+    const msg = document.getElementById('settingsNameMsg');
+    if (!name) { if (msg) { msg.textContent = 'Business name cannot be empty.'; msg.classList.remove('hidden'); } return; }
+    try {
+        await ApiClient.patch('/profiles/me', { business_name: name });
+        if (msg) { msg.textContent = 'Business name updated!'; msg.style.color = 'var(--green)'; msg.classList.remove('hidden'); }
+        if (typeof checkTierAndShowUpgrade === 'function') checkTierAndShowUpgrade();
+    } catch (err) {
+        if (msg) { msg.textContent = err.message || 'Failed to update.'; msg.style.color = ''; msg.classList.remove('hidden'); }
+    }
+}
+
+async function saveSettingsPassword() {
+    const newPw = document.getElementById('settingsNewPassword')?.value || '';
+    const confirm = document.getElementById('settingsConfirmPassword')?.value || '';
+    const msg = document.getElementById('settingsPasswordMsg');
+    if (newPw !== confirm) { if (msg) { msg.textContent = 'Passwords do not match.'; msg.classList.remove('hidden'); } return; }
+    if (newPw.length < 8 || !/[A-Z]/.test(newPw) || !/[0-9]/.test(newPw)) {
+        if (msg) { msg.textContent = 'Password must be 8+ chars with 1 uppercase and 1 number.'; msg.classList.remove('hidden'); }
+        return;
+    }
+    try {
+        await ApiClient.patch('/auth/change-password', { new_password: newPw });
+        if (msg) { msg.textContent = 'Password changed successfully!'; msg.style.color = 'var(--green)'; msg.classList.remove('hidden'); }
+        document.getElementById('settingsNewPassword').value = '';
+        document.getElementById('settingsConfirmPassword').value = '';
+    } catch (err) {
+        if (msg) { msg.textContent = err.message || 'Failed to change password.'; msg.style.color = ''; msg.classList.remove('hidden'); }
+    }
+}
+
+// ── Password Reset (from recovery email link) ──────────────────────────────────
+
+let _recoveryToken = null;
+
+function _checkRecoveryHash() {
+    const hash = window.location.hash;
+    if (!hash.includes('type=recovery')) return;
+    const params = new URLSearchParams(hash.replace('#', ''));
+    const token = params.get('access_token');
+    if (!token) return;
+    _recoveryToken = token;
+    history.replaceState(null, '', window.location.pathname);
+    const modal = document.getElementById('resetModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+async function submitResetPassword() {
+    const newPw = document.getElementById('resetNewPassword')?.value || '';
+    const confirm = document.getElementById('resetConfirmPassword')?.value || '';
+    const msg = document.getElementById('resetMsg');
+    if (newPw !== confirm) { if (msg) { msg.textContent = 'Passwords do not match.'; msg.classList.remove('hidden'); } return; }
+    if (newPw.length < 8 || !/[A-Z]/.test(newPw) || !/[0-9]/.test(newPw)) {
+        if (msg) { msg.textContent = 'Password must be 8+ chars with 1 uppercase and 1 number.'; msg.classList.remove('hidden'); }
+        return;
+    }
+    if (!_recoveryToken) { if (msg) { msg.textContent = 'Invalid or expired reset link.'; msg.classList.remove('hidden'); } return; }
+    try {
+        // Use the recovery token as Bearer to authenticate the change-password call
+        const base = window.ADVISOR_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${base}/auth/change-password`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_recoveryToken}` },
+            body: JSON.stringify({ new_password: newPw }),
+        });
+        if (!res.ok) throw new Error('Failed to set password.');
+        if (msg) { msg.textContent = 'Password set! You can now log in.'; msg.style.color = 'var(--green)'; msg.classList.remove('hidden'); }
+        _recoveryToken = null;
+        setTimeout(() => { document.getElementById('resetModal').classList.add('hidden'); showAuthModal('login'); }, 2000);
+    } catch (err) {
+        if (msg) { msg.textContent = err.message || 'Failed to set password.'; msg.style.color = ''; msg.classList.remove('hidden'); }
+    }
+}
+
+// Close modals on overlay click
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('authModal');
     if (modal) {
@@ -230,6 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === modal) closeAuthModal();
         });
     }
+    ['forgotModal', 'settingsModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m) m.addEventListener('click', (e) => { if (e.target === m) m.classList.add('hidden'); });
+    });
+    _checkRecoveryHash();
     // Initialize UI state
     refreshAuthUI();
 });
