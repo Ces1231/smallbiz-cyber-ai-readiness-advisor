@@ -1,12 +1,12 @@
 # Project State
-_Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — complete)_
+_Last updated: 2026-06-22 by wasp (SPRINT-008 NVIDIA hybrid routing, embeddings, GPU stats, voice, document analysis — complete)_
 
 ## Meta
 - **project:** smallbiz-cyber-ai-readiness-advisor
 - **state_mode:** single
 - **version:** 0.1.0
-- **last_updated:** 2026-06-21
-- **last_updated_by:** iron-man
+- **last_updated:** 2026-06-22
+- **last_updated_by:** wasp
 - **language:** python (backend) + vanilla js (frontend)
 - **python_version:** 3.11+
 - **stack:** FastAPI + Supabase + Vercel (frontend) + Railway (backend)
@@ -67,9 +67,12 @@ _Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — co
 **Key patterns:** Pydantic v2 models, FastAPI `Depends()` for auth + DB, structlog JSON logging, SSE via `StreamingResponse`
 
 ### AI Layer (`/backend/ai/`)
-**Files:** `base.py`, `anthropic_provider.py`, `openai_provider.py`, `groq_provider.py`, `ollama_provider.py`, `factory.py`
+**Files:** `base.py`, `anthropic_provider.py`, `openai_provider.py`, `groq_provider.py`, `ollama_provider.py`, `nvidia_nim_provider.py`, `hybrid_provider.py`, `nvidia_embeddings.py`, `nvidia_reranker.py`, `factory.py`
 **Purpose:** Provider-agnostic AI adapter — `AIProvider` ABC with `stream_completion()` and `health_check()`
-**Provider selection:** `AI_PROVIDER` env var (`anthropic` | `openai` | `groq` | `ollama`)
+**Provider selection:** `AI_PROVIDER` env var (`anthropic` | `openai` | `groq` | `ollama` | `nvidia` | `hybrid`)
+**Hybrid:** NIM → Ollama → hardcoded fallback text. Default in docker-compose.
+**NvidiaEmbeddings:** embed texts via `nvidia/nv-embedqa-e5-v5`. No-op when no API key.
+**NvidiaReranker:** rerank passages via `nvidia/nv-rerankqa-mistral-4b-v3`. Injected into `_generate_and_cache_advice` to prepend top prior advice as context.
 
 ### Routers (`/backend/routers/`)
 | Router | Prefix | Key Endpoints |
@@ -77,10 +80,10 @@ _Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — co
 | auth.py | `/auth` | POST /signup, POST /login, POST /logout, GET /me |
 | assessments.py | `/assessments` | POST /, GET /, GET /{id} |
 | baselines.py | `/baselines` | GET /me, POST /, DELETE /me |
-| ai.py | `/ai` | GET /advice/{id}/{dim}, GET /health |
+| ai.py | `/ai` | GET /advice/{id}/{dim}, GET /health, POST /transcribe |
 | profiles.py | `/profiles` | GET /me |
 | billing.py | `/billing` | POST /checkout, POST /portal, GET /subscription, POST /webhook |
-| admin.py | `/admin` | GET /metrics, GET /users |
+| admin.py | `/admin` | GET /metrics, GET /users, GET /gpu-stats |
 
 ## Mobile Screens (Sprint 005 additions)
 
@@ -117,8 +120,8 @@ _Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — co
 | `backend/routers/ai.py` | AI advice streaming, advice_cache |
 | `backend/routers/billing.py` | Stripe checkout, webhooks, portal |
 | `backend/routers/profiles.py` | User profile + tier reads |
-| `backend/routers/admin.py` | Admin-only aggregate metrics |
-| `backend/routers/business.py` | Dream-to-Launch Builder — quiz, ideas, plans, advisor requests (SPRINT-006) |
+| `backend/routers/admin.py` | Admin-only aggregate metrics, GPU stats (SPRINT-008) |
+| `backend/routers/business.py` | Dream-to-Launch Builder — quiz, ideas, plans, advisor requests (SPRINT-006), document/image analysis (SPRINT-008) |
 | `backend/prompts_dream.py` | AI prompt functions for dream builder (SPRINT-006) |
 | `backend/pdf_generator.py` | Business plan PDF generation via weasyprint (SPRINT-006) |
 
@@ -290,7 +293,7 @@ _Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — co
 
 | Prefix | Last Used |
 |--------|-----------|
-| SPRINT | 006 |
+| SPRINT | 008 |
 | FEAT | 000 |
 | TASK | 000 |
 | BUG | 000 |
@@ -306,3 +309,4 @@ _Last updated: 2026-06-21 by iron-man (SPRINT-006 dream-to-launch builder — co
 | SPRINT-005 | 2026-06-19 | Onboarding Gate — Sequential Q1/Q2 Post-Login Flow (Web + Mobile) | mobile/src/screens/onboarding/OnboardingGateScreen.tsx, mobile/src/screens/ChampInfoScreen.tsx, mobile/src/navigation/AuthNavigator.tsx, mobile/src/navigation/AppNavigator.tsx, mobile/src/navigation/RootNavigator.tsx, mobile/src/store/authStore.ts, mobile/src/screens/HomeScreen.tsx, mobile/src/screens/auth/LoginScreen.tsx, mobile/src/screens/auth/SignupScreen.tsx, app.js, index.html, styles.css | specified |
 | SPRINT-005-ARCH | 2026-06-19 | ARCHIVED: Existing Business Assessment Path — Mobile (superseded by SPRINT-005 onboarding gate; content deferred to SPRINT-006) | — | archived |
 | SPRINT-006 | 2026-06-21 | SmallBiz Dream-to-Launch Builder — Q2 new business path (quiz, AI ideas, tiered plans, one-time billing) | backend/routers/business.py, backend/schemas/business.py, backend/prompts_dream.py, backend/pdf_generator.py, backend/routers/billing.py (extended), backend/dependencies.py (extended), supabase/migrations/ (4 new), dream-builder.html, dream-builder.js, styles.css, app.js, mobile/src/screens/dream/, mobile/src/api/business.ts, mobile/src/navigation/AppNavigator.tsx, mobile/src/store/authStore.ts | complete |
+| SPRINT-008 | 2026-06-22 | NVIDIA hybrid routing, NIM embeddings/reranker, Jetson GPU stats, voice input, document/image analysis | backend/ai/hybrid_provider.py, backend/ai/nvidia_embeddings.py, backend/ai/nvidia_reranker.py, backend/ai/factory.py, backend/routers/ai.py, backend/routers/admin.py, backend/routers/business.py, backend/requirements.txt, docker-compose.yml, index.html, app.js, auth.js, styles.css, admin.html, mobile/src/hooks/useVoiceInput.ts, mobile/src/components/VoiceMicButton.tsx, mobile/src/screens/dream/, mobile/src/screens/AssessmentFormScreen.tsx | complete |
