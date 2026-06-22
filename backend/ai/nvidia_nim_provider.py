@@ -77,13 +77,15 @@ class NvidiaNimProvider(AIProvider):
             )
 
             async for chunk in stream:
+                if not chunk.choices:
+                    continue
                 delta = chunk.choices[0].delta.content
                 if delta:
                     yield delta
 
         except Exception as exc:
             log.error("nvidia_nim_stream_error", error=str(exc), model=self._model)
-            yield f"\n\n[NVIDIA NIM temporarily unavailable: {type(exc).__name__}]"
+            yield f"[NVIDIA NIM temporarily unavailable: {type(exc).__name__}]"
 
     async def health_check(self) -> bool:
         """Verifies NIM reachability with a minimal completion call."""

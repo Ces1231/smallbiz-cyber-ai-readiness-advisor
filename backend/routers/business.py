@@ -584,7 +584,7 @@ async def delete_idea(
 
     # Delete launch_plans first (FK constraint)
     try:
-        supabase.table("launch_plans").delete().eq("idea_id", str(idea_id)).execute()
+        supabase.table("launch_plans").delete().eq("business_idea_id", str(idea_id)).execute()
     except Exception as exc:
         log.warning("delete_idea_launch_plan_error", idea_id=str(idea_id), error=str(exc))
 
