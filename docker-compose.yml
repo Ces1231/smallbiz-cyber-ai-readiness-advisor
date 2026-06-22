@@ -112,7 +112,7 @@ services:
       APP_ENV: local
       LOG_LEVEL: INFO
       # ── AI provider (ollama = local Jetson GPU; nvidia = NVIDIA NIM cloud) ──
-      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      AI_PROVIDER: ${AI_PROVIDER:-hybrid}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}

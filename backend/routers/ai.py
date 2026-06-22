@@ -10,8 +10,9 @@ from collections import defaultdict
 from typing import AsyncIterator, Literal
 from uuid import UUID
 
+import httpx
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from supabase import Client
 
@@ -226,6 +227,39 @@ async def _generate_and_cache_advice(
         )
         return
 
+    # ── Reranker context injection (soft enhancement — no-op when key absent) ──
+    try:
+        from backend.ai.nvidia_reranker import NvidiaReranker
+        reranker = NvidiaReranker()
+        if reranker.has_key:
+            past = (
+                supabase.table("advice_cache")
+                .select("content")
+                .eq("user_id", user_id)
+                .order("id", desc=True)
+                .limit(5)
+                .execute()
+            )
+            past_passages = [r["content"] for r in (past.data or []) if r.get("content")]
+            if past_passages:
+                ranked_indices = await reranker.rerank(
+                    query=f"{system_prompt}\n\n{user_message}",
+                    passages=past_passages,
+                )
+                if ranked_indices:
+                    top_passage = past_passages[ranked_indices[0]]
+                    system_prompt = (
+                        f"Relevant prior advice for context:\n{top_passage}\n\n{system_prompt}"
+                    )
+                    log.info(
+                        "reranker_context_injected",
+                        dimension=dimension,
+                        passages_considered=len(past_passages),
+                    )
+    except Exception as exc:
+        log.warning("reranker_injection_failed", error=str(exc))
+        # Continue without reranker context — non-blocking
+
     # Stream from AI provider, collecting full text
     full_text_parts: list[str] = []
     stream_failed = False
@@ -390,6 +424,60 @@ async def stream_advice(
         ),
         media_type="text/event-stream",
     )
+
+
+@router.post("/transcribe", status_code=200)
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """
+    Accepts an audio file (m4a, wav, or any format from expo-av).
+    Sends to NVIDIA NIM Parakeet ASR if NVIDIA_API_KEY is configured.
+    Returns {text, message} — text is None when transcription is unavailable.
+    """
+    _unused_user = current_user  # auth check only
+
+    if not settings.nvidia_api_key:
+        return {
+            "text": None,
+            "message": (
+                "Voice transcription requires NVIDIA_API_KEY — "
+                "configure it to enable this feature."
+            ),
+        }
+
+    try:
+        audio_bytes = await audio.read()
+        filename = audio.filename or "audio.m4a"
+        content_type = audio.content_type or "audio/m4a"
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                "https://integrate.api.nvidia.com/v1/audio/transcriptions",
+                headers={"Authorization": f"Bearer {settings.nvidia_api_key}"},
+                files={
+                    "file": (filename, audio_bytes, content_type),
+                },
+                data={"model": "nvidia/parakeet-ctc-1.1b-asr"},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = data.get("text", "").strip()
+
+        log.info("audio_transcribed", user_id=current_user["id"], chars=len(text))
+        return {"text": text or None, "message": None}
+
+    except httpx.HTTPStatusError as exc:
+        log.warning(
+            "transcribe_nim_http_error",
+            status=exc.response.status_code,
+            user_id=current_user["id"],
+        )
+        return {"text": None, "message": "Transcription service returned an error. Please try again."}
+    except Exception as exc:
+        log.error("transcribe_error", error=str(exc), user_id=current_user["id"])
+        return {"text": None, "message": "Transcription failed. Please try again."}
 
 
 @router.get("/health")

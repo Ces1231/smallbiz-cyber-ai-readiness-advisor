@@ -2,16 +2,22 @@
 SmallBiz Advisor — Business / Dream-to-Launch Builder Router
 Endpoints: POST /business/quiz, GET /business/ideas,
            POST /business/ideas/{id}/save, GET /business/ideas/{id}/plan,
-           POST /business/ideas/{id}/generate-pdf, POST /business/advisor-request
+           POST /business/ideas/{id}/generate-pdf, POST /business/advisor-request,
+           POST /business/analyze-document
 """
+import base64
 import structlog
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from supabase import Client
 
+import httpx
+
+from backend.ai.base import AIProvider
+from backend.ai.factory import get_ai_provider
 from backend.config import settings
 from backend.dependencies import get_current_user, get_supabase_client, require_purchase
 from backend.schemas.business import (
@@ -661,4 +667,188 @@ async def create_advisor_request(
         advisor_request_id=request_id,
         status="pending",
         message="Your Advisor Review request has been received. You will receive a scheduling link at your email address within 1 business day.",
+    )
+
+
+# ── POST /business/analyze-document ──────────────────────────────────────────
+
+_ANALYZE_PROMPT = (
+    "Analyze this business document and extract: "
+    "1) Business type/industry, "
+    "2) Key business details, "
+    "3) Potential risks or gaps, "
+    "4) 3 specific recommendations for improvement. "
+    "Document content:\n\n{content}"
+)
+
+_IMAGE_VISION_PROMPT = (
+    "Analyze this business-related image and extract: "
+    "1) What type of business document or content this appears to be, "
+    "2) Key information visible, "
+    "3) Potential risks or gaps you can identify, "
+    "4) 3 specific actionable recommendations. "
+    "Be concise and practical."
+)
+
+_MAX_FILE_BYTES = 5 * 1024 * 1024  # 5 MB
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
+_ALLOWED_PDF_TYPES = {"application/pdf"}
+
+
+@router.post("/analyze-document", status_code=200)
+async def analyze_document(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    ai: AIProvider = Depends(get_ai_provider),
+) -> dict:
+    """
+    Accepts PDF or image (jpeg/png/webp). Extracts text (PDF) or describes
+    content (image via NIM Vision). Returns AI-generated business insights.
+    Max file size: 5 MB.
+    """
+    user_id = current_user["id"]
+    content_type = (file.content_type or "").lower()
+    filename = file.filename or "upload"
+
+    # Read file bytes (limit enforced)
+    file_bytes = await file.read(_MAX_FILE_BYTES + 1)
+    if len(file_bytes) > _MAX_FILE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "error": "file_too_large",
+                "message": "File exceeds the 5 MB limit.",
+                "details": {},
+            },
+        )
+
+    # ── PDF path ─────────────────────────────────────────────────────────────
+    if content_type in _ALLOWED_PDF_TYPES or filename.lower().endswith(".pdf"):
+        try:
+            import io
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(file_bytes))
+            text_parts = [page.extract_text() or "" for page in reader.pages]
+            extracted_text = "\n".join(text_parts).strip()
+            if not extracted_text:
+                extracted_text = "[No extractable text found in PDF]"
+        except Exception as exc:
+            log.warning("analyze_document_pdf_extract_error", error=str(exc))
+            extracted_text = "[Could not extract text from PDF]"
+
+        # Truncate to 3000 chars
+        document_text = extracted_text[:3000]
+        prompt_content = _ANALYZE_PROMPT.format(content=document_text)
+        doc_type = "pdf"
+
+        # Collect full AI response (non-streaming)
+        try:
+            parts: list[str] = []
+            async for chunk in ai.stream_completion(
+                system_prompt=(
+                    "You are a business advisor analyzing a document for a small business owner. "
+                    "Be specific, practical, and concise."
+                ),
+                user_message=prompt_content,
+                max_tokens=1500,
+                temperature=0.5,
+            ):
+                parts.append(chunk)
+            insights = "".join(parts).strip()
+        except Exception as exc:
+            log.error("analyze_document_ai_error", error=str(exc), doc_type=doc_type)
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "ai_unavailable",
+                    "message": "AI analysis temporarily unavailable. Please try again.",
+                    "details": {},
+                },
+            )
+
+        log.info("document_analyzed", user_id=user_id, doc_type=doc_type, filename=filename)
+        return {"insights": insights, "filename": filename, "doc_type": doc_type}
+
+    # ── Image path ───────────────────────────────────────────────────────────
+    if content_type in _ALLOWED_IMAGE_TYPES or any(
+        filename.lower().endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".webp")
+    ):
+        if not settings.nvidia_api_key:
+            return {
+                "insights": None,
+                "filename": filename,
+                "doc_type": "image",
+                "message": (
+                    "Image analysis requires NVIDIA_API_KEY. "
+                    "Configure it to enable NIM Vision analysis."
+                ),
+            }
+
+        try:
+            encoded = base64.b64encode(file_bytes).decode("utf-8")
+            mime = content_type if content_type in _ALLOWED_IMAGE_TYPES else "image/jpeg"
+
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    "https://integrate.api.nvidia.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.nvidia_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": "nvidia/vila",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:{mime};base64,{encoded}",
+                                        },
+                                    },
+                                    {"type": "text", "text": _IMAGE_VISION_PROMPT},
+                                ],
+                            }
+                        ],
+                        "max_tokens": 1500,
+                        "temperature": 0.5,
+                    },
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                insights = data["choices"][0]["message"]["content"].strip()
+
+            log.info("image_analyzed", user_id=user_id, filename=filename)
+            return {"insights": insights, "filename": filename, "doc_type": "image"}
+
+        except httpx.HTTPStatusError as exc:
+            log.warning("analyze_image_nim_error", status=exc.response.status_code)
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "vision_unavailable",
+                    "message": "Image analysis temporarily unavailable. Please try again.",
+                    "details": {},
+                },
+            )
+        except Exception as exc:
+            log.error("analyze_image_error", error=str(exc))
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "analysis_failed",
+                    "message": "Image analysis failed. Please try again.",
+                    "details": {},
+                },
+            )
+
+    # ── Unsupported type ─────────────────────────────────────────────────────
+    raise HTTPException(
+        status_code=415,
+        detail={
+            "error": "unsupported_file_type",
+            "message": "Please upload a PDF or image file (JPEG, PNG, or WebP).",
+            "details": {},
+        },
     )

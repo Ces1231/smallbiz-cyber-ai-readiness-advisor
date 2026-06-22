@@ -1,8 +1,10 @@
 """
 SmallBiz Advisor — Admin Router
-Endpoints: metrics, user list, user detail, create user, update user, reset password, delete user.
+Endpoints: metrics, user list, user detail, create user, update user, reset password, delete user,
+           gpu-stats (Jetson GPU live stats via nvidia-smi).
 All endpoints require admin tier.
 """
+import asyncio
 import secrets
 import string
 from collections import Counter
@@ -511,3 +513,49 @@ async def get_user_assessments(
         raise HTTPException(status_code=500, detail={"error": "fetch_failed", "message": "Failed to fetch assessments.", "details": {}})
     log.info("admin_user_assessments_fetched", user_id=user_id, count=len(assessments))
     return {"assessments": assessments, "total": len(assessments)}
+
+
+# ── GET /admin/gpu-stats ───────────────────────────────────────────────────────
+
+@router.get("/gpu-stats", status_code=200)
+async def get_gpu_stats(_profile: dict = Depends(require_admin_tier)) -> dict:
+    """Return live Jetson GPU stats via nvidia-smi. Admin tier required."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "nvidia-smi",
+            "--query-gpu=name,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu",
+            "--format=csv,noheader,nounits",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10.0)
+        if proc.returncode != 0:
+            err = stderr.decode().strip() if stderr else "nvidia-smi returned non-zero"
+            log.warning("gpu_stats_smi_error", returncode=proc.returncode, stderr=err)
+            return {"available": False, "error": err}
+
+        line = stdout.decode().strip().splitlines()[0]
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) < 6:
+            return {"available": False, "error": f"Unexpected nvidia-smi output: {line!r}"}
+
+        gpu_name, gpu_util, mem_util, mem_used, mem_total, temp = parts[:6]
+        log.info("gpu_stats_fetched", gpu=gpu_name)
+        return {
+            "available": True,
+            "gpu_name": gpu_name,
+            "gpu_util_pct": int(gpu_util),
+            "mem_util_pct": int(mem_util),
+            "mem_used_mb": int(mem_used),
+            "mem_total_mb": int(mem_total),
+            "temp_c": int(temp),
+        }
+    except asyncio.TimeoutError:
+        log.warning("gpu_stats_timeout")
+        return {"available": False, "error": "nvidia-smi timed out"}
+    except FileNotFoundError:
+        log.info("gpu_stats_smi_not_found")
+        return {"available": False, "error": "nvidia-smi not found — not running on a GPU host"}
+    except Exception as exc:
+        log.warning("gpu_stats_error", error=str(exc))
+        return {"available": False, "error": str(exc)}

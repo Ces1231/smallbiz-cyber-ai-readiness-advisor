@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, Modal,
 } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { useAuthStore } from '../../store/authStore';
 import { saveIdea, IdeaSuggestion } from '../../api/business';
 import { colors } from '../../theme/colors';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
 export function DreamBuilderResultsScreen({ navigation, route }: any) {
   const { token } = useAuthStore();
@@ -18,6 +21,53 @@ export function DreamBuilderResultsScreen({ navigation, route }: any) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [docAnalyzing, setDocAnalyzing] = useState(false);
+  const [docResult, setDocResult] = useState<string | null>(null);
+  const [docModalVisible, setDocModalVisible] = useState(false);
+
+  async function handleAnalyzeDocument() {
+    if (!token) return;
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      setDocAnalyzing(true);
+      setDocResult(null);
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: asset.name ?? 'document',
+        type: asset.mimeType ?? 'application/octet-stream',
+      } as any);
+
+      const resp = await fetch(`${BASE_URL}/business/analyze-document`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        setDocResult(data?.detail?.message ?? 'Analysis failed. Please try again.');
+      } else if (!data.insights) {
+        setDocResult(data.message ?? 'Analysis not available. NVIDIA_API_KEY may not be configured.');
+      } else {
+        setDocResult(data.insights);
+      }
+      setDocModalVisible(true);
+    } catch (exc: any) {
+      setDocResult('Failed to analyze document. Please try again.');
+      setDocModalVisible(true);
+    } finally {
+      setDocAnalyzing(false);
+    }
+  }
 
   async function handleSaveIdea() {
     if (!token) return;
@@ -84,8 +134,41 @@ export function DreamBuilderResultsScreen({ navigation, route }: any) {
           </View>
         </View>
 
+        {/* Document Analysis */}
+        <TouchableOpacity
+          style={styles.docAnalysisBtn}
+          onPress={handleAnalyzeDocument}
+          disabled={docAnalyzing}
+        >
+          {docAnalyzing ? (
+            <ActivityIndicator color={colors.cyan} size="small" />
+          ) : (
+            <Text style={styles.docAnalysisBtnText}>Analyze a Business Document</Text>
+          )}
+        </TouchableOpacity>
+
         {error && <Text style={styles.error}>{error}</Text>}
       </ScrollView>
+
+      {/* Document Analysis Result Modal */}
+      <Modal
+        visible={docModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setDocModalVisible(false)}
+      >
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Document Analysis</Text>
+            <TouchableOpacity onPress={() => setDocModalVisible(false)}>
+              <Text style={styles.modalClose}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView contentContainerStyle={styles.modalContent}>
+            <Text style={styles.modalBody}>{docResult}</Text>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -141,6 +224,34 @@ const styles = StyleSheet.create({
   lockIcon: { fontSize: 13 },
   lockText: { fontSize: 12, color: colors.muted, flex: 1 },
   error: { color: colors.red, fontSize: 13, marginTop: 12 },
+  docAnalysisBtn: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    backgroundColor: 'rgba(96,165,250,0.06)',
+  },
+  docAnalysisBtnText: {
+    color: colors.blue,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  modalSafe: { flex: 1, backgroundColor: colors.background },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
+  modalClose: { fontSize: 16, color: colors.cyan },
+  modalContent: { padding: 20 },
+  modalBody: { fontSize: 14, color: colors.text, lineHeight: 22 },
   footer: {
     padding: 16, borderTopWidth: 1, borderTopColor: colors.border,
     backgroundColor: colors.background,

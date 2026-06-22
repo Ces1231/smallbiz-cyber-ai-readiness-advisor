@@ -13,3 +13,5 @@ groq==0.9.0
 stripe==10.12.0
 weasyprint>=60.2
 reportlab>=4.2.0
+python-multipart>=0.0.9
+pypdf>=4.0.0

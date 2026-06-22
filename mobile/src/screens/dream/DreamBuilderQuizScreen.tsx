@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { submitQuiz, IdeaSuggestion } from '../../api/business';
+import { VoiceMicButton } from '../../components/VoiceMicButton';
 import { colors } from '../../theme/colors';
 
 // ── Quiz Data ────────────────────────────────────────────────────────────────
@@ -94,6 +95,44 @@ export function DreamBuilderQuizScreen({ navigation }: any) {
     setProblems((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
+  }
+
+  /** Parse skill keywords from a voice transcript and toggle matching chips. */
+  function handleSkillTranscript(transcript: string) {
+    const lower = transcript.toLowerCase();
+    const keywordMap: Record<string, string[]> = {
+      computers_tech:       ['tech', 'computer', 'coding', 'software', 'programming', 'it ', 'engineer'],
+      sales_marketing:      ['sales', 'marketing', 'advertis', 'social media', 'seo'],
+      writing_content:      ['writ', 'content', 'blog', 'copy', 'journal'],
+      design_creative:      ['design', 'creat', 'art', 'graphic', 'visual', 'photo'],
+      teaching_coaching:    ['teach', 'coach', 'train', 'mentor', 'tutor'],
+      cooking_food:         ['cook', 'food', 'bake', 'chef', 'culinar'],
+      trades_repair:        ['trade', 'repair', 'plumb', 'electr', 'mechanic', 'handyman', 'construct'],
+      healthcare_wellness:  ['health', 'nurs', 'medic', 'wellness', 'therapy', 'fitness', 'care'],
+      finance_accounting:   ['financ', 'account', 'bookkeep', 'tax', 'money', 'invest'],
+      management_leadership:['manag', 'leader', 'director', 'execut', 'operat'],
+      customer_service:     ['customer', 'service', 'support', 'retail', 'client'],
+      languages:            ['language', 'translat', 'bilingual', 'spanish', 'french', 'interpret'],
+      music_arts:           ['music', 'sing', 'instrument', 'art', 'danc', 'perform'],
+      sports_fitness:       ['sport', 'athlet', 'gym', 'personal train', 'yoga', 'weight'],
+      childcare_education:  ['child', 'babysit', 'daycare', 'preschool', 'educat', 'nanny'],
+    };
+
+    const matched = Object.entries(keywordMap)
+      .filter(([, keywords]) => keywords.some((kw) => lower.includes(kw)))
+      .map(([key]) => key);
+
+    if (matched.length > 0) {
+      setSkills((prev) => {
+        const combined = new Set([...prev, ...matched]);
+        return Array.from(combined);
+      });
+    } else {
+      Alert.alert(
+        'No skills matched',
+        'Could not detect specific skills from your speech. Try saying skills like "computers", "cooking", or "writing".',
+      );
+    }
   }
 
   function isCurrentPageValid(): boolean {
@@ -212,8 +251,16 @@ export function DreamBuilderQuizScreen({ navigation }: any) {
       case 1:
         return (
           <>
-            <Text style={styles.questionTitle}>What are your top skills?</Text>
-            <Text style={styles.questionSub}>Select all that apply.</Text>
+            <View style={styles.questionHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.questionTitle}>What are your top skills?</Text>
+                <Text style={styles.questionSub}>Select all that apply.</Text>
+              </View>
+              <VoiceMicButton
+                onTranscript={handleSkillTranscript}
+                style={styles.micBtn}
+              />
+            </View>
             {renderChips(SKILLS_OPTIONS, skills, toggleSkill)}
           </>
         );
@@ -294,6 +341,8 @@ const styles = StyleSheet.create({
   progressDot: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.border },
   progressDotDone: { backgroundColor: colors.cyan },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 32 },
+  questionHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 0, gap: 10 },
+  micBtn: { marginTop: 4 },
   questionTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 6 },
   questionSub: { fontSize: 13, color: colors.muted, marginBottom: 14 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

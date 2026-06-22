@@ -17,6 +17,7 @@ import { StepPicker } from '../components/StepPicker';
 import { ProgressBar } from '../components/ProgressBar';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { VoiceMicButton } from '../components/VoiceMicButton';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
@@ -173,15 +174,21 @@ export function AssessmentFormScreen({ navigation }: any) {
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Business Name</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={form.business_name}
-                  onChangeText={(val) => updateField('business_name', val)}
-                  placeholder="Enter your business name"
-                  placeholderTextColor={colors.muted}
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                />
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={[styles.textInput, styles.textInputFlex]}
+                    value={form.business_name}
+                    onChangeText={(val) => updateField('business_name', val)}
+                    placeholder="Enter your business name"
+                    placeholderTextColor={colors.muted}
+                    autoCapitalize="words"
+                    returnKeyType="done"
+                  />
+                  <VoiceMicButton
+                    onTranscript={(t) => updateField('business_name', t)}
+                    style={styles.micBtn}
+                  />
+                </View>
               </View>
 
               <View style={styles.fieldGroup}>
@@ -359,6 +366,17 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  textInputFlex: {
+    flex: 1,
+  },
+  micBtn: {
+    flexShrink: 0,
   },
   textInput: {
     backgroundColor: colors.panel,

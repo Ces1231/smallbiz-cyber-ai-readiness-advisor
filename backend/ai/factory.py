@@ -54,8 +54,12 @@ def get_ai_provider() -> AIProvider:
         from backend.ai.nvidia_nim_provider import NvidiaNimProvider
         return NvidiaNimProvider()
 
+    if provider_name == "hybrid":
+        from backend.ai.hybrid_provider import HybridProvider
+        return HybridProvider()
+
     log.error("ai_provider_not_found", provider=provider_name)
     raise ValueError(
         f"Unknown AI provider: '{provider_name}'. "
-        "Valid values are: 'anthropic', 'openai', 'groq', 'ollama', 'nvidia'."
+        "Valid values are: 'anthropic', 'openai', 'groq', 'ollama', 'nvidia', 'hybrid'."
     )
