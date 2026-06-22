@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Backend Configuration
+Champ Compass — Backend Configuration
 Settings loaded from environment variables via pydantic-settings.
 """
 from pydantic_settings import BaseSettings

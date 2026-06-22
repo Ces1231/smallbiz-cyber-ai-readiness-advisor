@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Email Helper
+Champ Compass — Email Helper
 Sends notification emails via Resend (primary) or SMTP (fallback).
 """
 import structlog
@@ -12,13 +12,13 @@ log = structlog.get_logger()
 
 async def send_advisor_notification_email(user_email: str, request_id: str) -> None:
     """Notify admin of a new Advisor Review request."""
-    subject = "New Advisor Review Request — SmallBiz Dream Builder"
+    subject = "New Advisor Review Request — Champ Compass Dream Builder"
     body = (
         f"A new Advisor Review request has been received.\n\n"
         f"User Email: {user_email}\n"
         f"Request ID: {request_id}\n\n"
         f"Log in to the admin dashboard to schedule the session.\n\n"
-        f"— SmallBiz Advisor System"
+        f"— Champ Compass System"
     )
     await _dispatch_email(subject, body, to=settings.admin_notification_email, reply_to=user_email)
 
@@ -26,17 +26,17 @@ async def send_advisor_notification_email(user_email: str, request_id: str) -> N
 async def send_welcome_email(user_email: str, business_name: str) -> None:
     """Send a welcome email to a new user after signup."""
     name = business_name or "there"
-    subject = "Welcome to SmallBiz Advisor!"
+    subject = "Welcome to Champ Compass!"
     body = (
         f"Hi {name},\n\n"
-        f"Welcome to SmallBiz Advisor! Your account is ready.\n\n"
+        f"Welcome to Champ Compass! Your account is ready.\n\n"
         f"Here's what you can do right now:\n"
         f"  • Take the Cyber & AI Readiness Assessment\n"
         f"  • Explore business ideas with the Dream Builder\n"
         f"  • Get AI-powered advice on your results\n\n"
         f"Log in any time at: http://localhost\n\n"
         f"Questions? Reply to this email — we're happy to help.\n\n"
-        f"— The SmallBiz Advisor Team\n"
+        f"— The Champ Compass Team\n"
         f"  Champtron Systems LLC"
     )
     await _dispatch_email(subject, body, to=user_email, reply_to=settings.admin_notification_email)
@@ -44,28 +44,28 @@ async def send_welcome_email(user_email: str, business_name: str) -> None:
 
 async def send_signup_notification_email(user_email: str, business_name: str, user_id: str) -> None:
     """Notify admin when a new user signs up."""
-    subject = "New User Signup — SmallBiz Advisor"
+    subject = "New User Signup — Champ Compass"
     body = (
-        f"A new user has signed up for SmallBiz Advisor.\n\n"
+        f"A new user has signed up for Champ Compass.\n\n"
         f"Email: {user_email}\n"
         f"Business Name: {business_name or 'Not provided'}\n"
         f"User ID: {user_id}\n\n"
         f"View their account in the admin dashboard:\n"
         f"http://localhost/admin.html\n\n"
-        f"— SmallBiz Advisor System"
+        f"— Champ Compass System"
     )
     await _dispatch_email(subject, body, to=settings.admin_notification_email, reply_to=user_email)
 
 
 async def send_temp_password_email(user_email: str, temp_password: str) -> None:
     """Send a temporary password to a user after admin-triggered reset."""
-    subject = "Your Temporary Password — SmallBiz Advisor"
+    subject = "Your Temporary Password — Champ Compass"
     body = (
-        f"Your SmallBiz Advisor password has been reset by an administrator.\n\n"
+        f"Your Champ Compass password has been reset by an administrator.\n\n"
         f"Temporary Password: {temp_password}\n\n"
         f"Please log in immediately and change your password.\n"
         f"Visit: http://localhost\n\n"
-        f"— SmallBiz Advisor System"
+        f"— Champ Compass System"
     )
     await _dispatch_email(
         subject, body, to=user_email, reply_to=settings.admin_notification_email

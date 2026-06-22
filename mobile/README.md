@@ -1,6 +1,6 @@
-# SmallBiz Advisor — Mobile App
+# Champ Compass — Mobile App
 
-Expo + TypeScript mobile application for the SmallBiz Cyber & AI Readiness Advisor.
+Expo + TypeScript mobile application for the Champ Compass.
 Built by Champtron Systems LLC.
 
 ---

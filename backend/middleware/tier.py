@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Tier Enforcement
+Champ Compass — Tier Enforcement
 FastAPI Depends functions for free/pro quota and admin checks.
 """
 from datetime import datetime, timezone

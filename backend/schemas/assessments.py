@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Assessment Pydantic Schemas
+Champ Compass — Assessment Pydantic Schemas
 Request and response models for assessment endpoints.
 """
 from datetime import datetime

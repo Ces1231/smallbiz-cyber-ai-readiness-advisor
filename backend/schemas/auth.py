@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Auth Pydantic Schemas
+Champ Compass — Auth Pydantic Schemas
 Request and response models for authentication endpoints.
 """
 import re

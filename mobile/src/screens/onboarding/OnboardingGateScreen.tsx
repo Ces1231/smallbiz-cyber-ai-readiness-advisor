@@ -61,7 +61,7 @@ export function OnboardingGateScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.brand}>Champtron Systems LLC</Text>
-          <Text style={styles.title}>SmallBiz Advisor</Text>
+          <Text style={styles.title}>Champ Compass</Text>
           <Text style={styles.stepIndicator}>{step === 1 ? 'Step 1 of 2' : 'Step 2 of 2'}</Text>
         </View>
 

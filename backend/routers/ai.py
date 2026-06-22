@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — AI Advice Router
+Champ Compass — AI Advice Router
 Endpoints: GET /ai/advice/{assessment_id}/{dimension}, GET /ai/health
 Streams AI-generated advice via Server-Sent Events (SSE).
 Caches results in advice_cache to avoid redundant LLM calls.

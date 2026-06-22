@@ -2,7 +2,7 @@
 
 Hi, my name is Carnell Smith, founder of Champtron Systems LLC.
 
-I built the SmallBiz Cyber & AI Readiness Advisor to help entrepreneurs and small business owners quickly understand where they stand with cybersecurity, AI adoption, and business growth readiness.
+I built the Champ Compass to help entrepreneurs and small business owners quickly understand where they stand with cybersecurity, AI adoption, and business growth readiness.
 
 Many small businesses cannot afford dedicated consultants, cybersecurity staff, or AI experts. This tool gives them a simple guided assessment that turns complex technology decisions into clear scores, practical recommendations, and a 30/60/90-day roadmap.
 

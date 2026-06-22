@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Profiles Router
+Champ Compass — Profiles Router
 Endpoints: GET /profiles/me
 """
 from datetime import datetime, timezone

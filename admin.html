@@ -35,8 +35,16 @@
   <header class="hero" style="padding:20px 6vw">
     <nav>
       <div class="brand">
-        <strong>Champtron Systems LLC</strong>
-        <span>Admin Dashboard</span>
+        <svg class="cc-mark" width="22" height="38" viewBox="-16 -44 32 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="0,-42 14,0 -14,0" fill="#178A9E"/>
+          <polygon points="0,42 14,0 -14,0" fill="#D4880A"/>
+          <circle cx="0" cy="0" r="4" fill="#07111f"/>
+          <circle cx="0" cy="0" r="2" fill="#F6F3EE" opacity="0.5"/>
+        </svg>
+        <div class="cc-wordmark">
+          <span class="cc-champ">CHAMP</span>
+          <span class="cc-compass">COMPASS</span>
+        </div>
       </div>
       <span id="adminUserEmail" class="muted" style="font-size:13px;"></span>
       <button class="button secondary" onclick="Auth.logout().then(() => window.location = '/')">Logout</button>

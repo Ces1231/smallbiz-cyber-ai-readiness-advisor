@@ -1,4 +1,4 @@
-# SmallBiz Cyber & AI Readiness Advisor V4
+# Champ Compass
 
 ## New V4 Business Owner Action Center
 

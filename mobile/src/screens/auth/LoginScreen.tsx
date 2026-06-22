@@ -49,7 +49,7 @@ export function LoginScreen({ navigation }: Props) {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
             <Text style={styles.heading}>Welcome back</Text>
-            <Text style={styles.sub}>Sign in to your SmallBiz Advisor account</Text>
+            <Text style={styles.sub}>Sign in to your Champ Compass account</Text>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 

@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — AI Provider Package
+Champ Compass — AI Provider Package
 Provides a unified interface to multiple AI backends.
 """
 from backend.ai.base import AIProvider

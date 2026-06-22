@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Admin Router
+Champ Compass — Admin Router
 Endpoints: metrics, user list, user detail, create user, update user, reset password, delete user,
            gpu-stats (Jetson GPU live stats via nvidia-smi).
 All endpoints require admin tier.

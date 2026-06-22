@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Business / Dream-to-Launch Builder Router
+Champ Compass — Business / Dream-to-Launch Builder Router
 Endpoints: POST /business/quiz, GET /business/ideas,
            POST /business/ideas/{id}/save, GET /business/ideas/{id}/plan,
            POST /business/ideas/{id}/generate-pdf, POST /business/advisor-request,

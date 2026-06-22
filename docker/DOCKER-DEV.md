@@ -1,6 +1,6 @@
 # Local Docker Development Stack
 
-This stack runs the full SmallBiz Cyber & AI Readiness Advisor locally — no external services required. It includes PostgreSQL with Supabase's auth schema, GoTrue (auth), PostgREST (database REST API), an nginx gateway, the FastAPI backend, and a static frontend server.
+This stack runs the full Champ Compass locally — no external services required. It includes PostgreSQL with Supabase's auth schema, GoTrue (auth), PostgREST (database REST API), an nginx gateway, the FastAPI backend, and a static frontend server.
 
 ## Prerequisites
 

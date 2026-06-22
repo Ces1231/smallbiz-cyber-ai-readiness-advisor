@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Baselines Router
+Champ Compass — Baselines Router
 Endpoints: GET /baselines/me, POST /baselines, DELETE /baselines/me
 One baseline per user (upsert). Saved as a snapshot of an assessment.
 """

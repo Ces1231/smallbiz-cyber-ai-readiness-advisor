@@ -1,4 +1,4 @@
-// api-client.js — SmallBiz Advisor API Client
+// api-client.js — Champ Compass API Client
 // Thin fetch wrapper with automatic Bearer token injection from Auth.getToken().
 // Must be loaded AFTER auth.js and BEFORE app.js.
 

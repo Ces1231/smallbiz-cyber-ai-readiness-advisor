@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — FastAPI Dependencies
+Champ Compass — FastAPI Dependencies
 Provides Supabase client and auth middleware via FastAPI Depends().
 """
 import structlog

@@ -192,7 +192,7 @@ function renderResults(data, cyberScoreVal, aiScoreVal, fundingScoreVal, overall
 
   executiveSummary.textContent = `${data.businessName} completed a readiness assessment for cybersecurity, AI adoption, and funding preparedness. The business scored ${overall}% overall, with ${cyberScoreVal}% cyber readiness, ${aiScoreVal}% AI readiness, and ${fundingScoreVal}% funding readiness. The assessment identified practical opportunities to reduce risk, improve efficiency, and create a structured roadmap for growth.`;
 
-  latestReport = `SmallBiz Cyber & AI Readiness Advisor Report
+  latestReport = `Champ Compass Report
 Generated: ${new Date().toLocaleString()}
 
 Business: ${data.businessName}

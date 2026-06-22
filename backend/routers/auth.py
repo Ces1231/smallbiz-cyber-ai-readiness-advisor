@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Auth Router
+Champ Compass — Auth Router
 Endpoints: /auth/signup, /auth/login, /auth/logout, /auth/me
 Uses Supabase Auth as the identity provider.
 """

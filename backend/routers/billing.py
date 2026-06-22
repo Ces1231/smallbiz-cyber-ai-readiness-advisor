@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Billing Router
+Champ Compass — Billing Router
 Endpoints: POST /billing/checkout, POST /billing/portal,
            GET  /billing/subscription, POST /billing/webhook
 Handles Stripe Checkout sessions, Customer Portal, and webhook events.

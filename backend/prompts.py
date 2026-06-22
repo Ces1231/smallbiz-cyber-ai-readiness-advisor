@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Prompt Templates
+Champ Compass — Prompt Templates
 
 All AI prompt builders for assessment advice, executive summary,
 and roadmap generation. Prompts are calibrated for small business owners,

@@ -1,4 +1,4 @@
-# Mobile Application Vision — SmallBiz Cyber & AI Readiness Advisor
+# Mobile Application Vision — Champ Compass
 # Champtron Systems LLC — Product Spec (Not Yet Scheduled)
 # Captured: 2026-06-18
 

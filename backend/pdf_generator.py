@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Business Plan PDF Generator
+Champ Compass — Business Plan PDF Generator
 Generates a PDF from business plan content using weasyprint (primary) or reportlab (fallback).
 """
 import asyncio
@@ -96,7 +96,7 @@ def _generate_with_reportlab(
     story.append(Paragraph(idea.get("name", "Business Plan"), title_style))
     story.append(Paragraph(idea.get("description", ""), styles["Normal"]))
     story.append(Spacer(1, 0.3 * inch))
-    story.append(Paragraph("Prepared by SmallBiz Dream-to-Launch Builder", styles["Italic"]))
+    story.append(Paragraph("Prepared by Champ Compass Dream Builder", styles["Italic"]))
     story.append(HRFlowable(width="100%", thickness=1, color=rl_colors.HexColor("#22d3ee")))
     story.append(Spacer(1, 0.2 * inch))
 
@@ -183,7 +183,7 @@ def _render_html(
 <div class="cover">
   <h1>{esc(idea.get('name', 'Business Plan'))}</h1>
   <p>{esc(idea.get('description', ''))}</p>
-  <p class="tagline">Prepared by SmallBiz Dream-to-Launch Builder<br/>Champtron Systems LLC</p>
+  <p class="tagline">Prepared by Champ Compass Dream Builder<br/>Champtron Systems LLC</p>
 </div>
 
 <div class="section">

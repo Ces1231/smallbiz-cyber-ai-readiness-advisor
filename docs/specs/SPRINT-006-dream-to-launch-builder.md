@@ -1,4 +1,4 @@
-# SPRINT-006: SmallBiz Dream-to-Launch Builder
+# SPRINT-006: Dream Builder
 
 **Sprint ID:** SPRINT-006
 **Sprint Type:** Feature build — new business path (Q2 product, web + mobile + backend)
@@ -30,7 +30,7 @@
 
 ## Sprint Overview
 
-SPRINT-005 installed the onboarding gate that intercepts new-business users and routes them to a "startup path" — currently a stub. This sprint builds the actual destination: the **SmallBiz Dream-to-Launch Builder**, a guided, AI-powered product that takes a user from a vague business idea to a structured launch plan.
+SPRINT-005 installed the onboarding gate that intercepts new-business users and routes them to a "startup path" — currently a stub. This sprint builds the actual destination: the **Dream Builder**, a guided, AI-powered product that takes a user from a vague business idea to a structured launch plan.
 
 The product has four tiers:
 
@@ -949,7 +949,7 @@ async def generate_pdf(
 ```
 
 PDF template structure (8–12 pages):
-1. Cover page: business name, tagline, "Prepared by SmallBiz Dream-to-Launch Builder"
+1. Cover page: business name, tagline, "Prepared by Dream Builder"
 2. Executive summary (from mission_vision)
 3. Business overview (from idea name + description)
 4. Market analysis (customer persona)
@@ -1062,7 +1062,7 @@ The page has a two-column layout on desktop, single-column on mobile:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dream-to-Launch Builder — SmallBiz Advisor</title>
+  <title>Dream-to-Launch Builder — Champ Compass</title>
   <link rel="stylesheet" href="styles.css" />
   <!-- Stripe.js for payment collection -->
   <script src="https://js.stripe.com/v3/" defer></script>
@@ -1078,7 +1078,7 @@ The page has a two-column layout on desktop, single-column on mobile:
   </script>
 
   <nav class="db-nav">
-    <a href="index.html" class="db-nav-logo">SmallBiz Advisor</a>
+    <a href="index.html" class="db-nav-logo">Champ Compass</a>
     <span class="db-nav-title">Dream-to-Launch Builder</span>
     <button id="dbNavLogout" class="button ghost small">Sign Out</button>
   </nav>

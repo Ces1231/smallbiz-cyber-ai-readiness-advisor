@@ -1,4 +1,4 @@
-# SmallBiz Cyber & AI Readiness Advisor
+# Champ Compass
 ## 30 / 60 / 90 Day Product Roadmap
 **Owner:** Champtron Systems LLC  
 **Goal:** Increase demand, deepen value, and build a fundable, scalable product
@@ -114,4 +114,4 @@
 ---
 
 ## Built by Champtron Systems LLC
-*SmallBiz Cyber & AI Readiness Advisor — helping entrepreneurs close the gap between where they are and where funding can take them.*
+*Champ Compass — helping entrepreneurs close the gap between where they are and where funding can take them.*

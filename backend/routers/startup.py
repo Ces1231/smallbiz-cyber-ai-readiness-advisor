@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Startup Assessments Router
+Champ Compass — Startup Assessments Router
 Endpoints: POST /startup/assessments, GET /startup/assessments, GET /startup/assessments/{id}
 Computes startup scores server-side before persisting.
 """

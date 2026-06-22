@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Request ID Middleware
+Champ Compass — Request ID Middleware
 Assigns a unique UUID to every request and binds it to structlog's context vars.
 This enables correlation of log lines across concurrent SSE streaming requests.
 

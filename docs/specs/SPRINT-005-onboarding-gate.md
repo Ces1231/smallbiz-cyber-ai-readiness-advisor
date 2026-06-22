@@ -179,7 +179,7 @@ export function OnboardingGateScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.brand}>Champtron Systems LLC</Text>
-          <Text style={styles.title}>SmallBiz Advisor</Text>
+          <Text style={styles.title}>Champ Compass</Text>
           <Text style={styles.stepIndicator}>{step === 1 ? 'Step 1 of 2' : 'Step 2 of 2'}</Text>
         </View>
 
@@ -1192,7 +1192,7 @@ window.onboardingQ2Yes = function() {
     <div class="panel" style="margin:24px auto;max-width:600px;padding:24px;text-align:center">
       <h3 style="color:var(--green)">Starting a Business?</h3>
       <p class="muted">Our guided startup assessment is coming soon on web. 
-      In the meantime, try the <strong>SmallBiz Advisor mobile app</strong> 
+      In the meantime, try the <strong>Champ Compass mobile app</strong> 
       (Expo Go) for the full startup readiness assessment.</p>
     </div>
   `;

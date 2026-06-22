@@ -7,7 +7,7 @@
 3. Suggested repository name:
 
 ```text
-smallbiz-cyber-ai-readiness-advisor
+champ-compass
 ```
 
 4. Upload all files from this folder.
@@ -17,9 +17,9 @@ smallbiz-cyber-ai-readiness-advisor
 ```bash
 git init
 git add .
-git commit -m "Initial release of SmallBiz Cyber AI Readiness Advisor"
+git commit -m "Initial release of Champ Compass"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/smallbiz-cyber-ai-readiness-advisor.git
+git remote add origin https://github.com/YOUR-USERNAME/champ-compass.git
 git push -u origin main
 ```
 
@@ -38,7 +38,7 @@ git push -u origin main
 Your link should look like:
 
 ```text
-https://YOUR-USERNAME.github.io/smallbiz-cyber-ai-readiness-advisor/
+https://YOUR-USERNAME.github.io/champ-compass/
 ```
 
 Use that URL as your live demo link if you do not use Serverbyt.

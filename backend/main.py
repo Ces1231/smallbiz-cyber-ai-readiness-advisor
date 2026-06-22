@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — FastAPI Application Factory
+Champ Compass — FastAPI Application Factory
 Registers CORS, routers, and startup hooks.
 """
 import structlog

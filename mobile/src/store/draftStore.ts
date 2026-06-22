@@ -105,7 +105,7 @@ export const useDraftStore = create<DraftStore>()(
         set({ startupDraft: { ...defaultStartupDraft } }),
     }),
     {
-      name: 'smallbiz-draft',
+      name: 'champ-compass-draft',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

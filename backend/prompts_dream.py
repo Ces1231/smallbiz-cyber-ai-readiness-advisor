@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Dream-to-Launch Builder AI Prompts
+Champ Compass — Dream-to-Launch Builder AI Prompts
 Provides AI prompt functions for the Dream Builder endpoints.
 Three async functions: generate_idea_suggestions, generate_mission_preview, generate_launch_plan.
 """

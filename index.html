@@ -11,10 +11,15 @@
   <header class="hero">
     <nav>
       <div class="brand">
-        <img src="champtron-logo.jpg" alt="Champtron Systems LLC Logo" class="official-logo" />
-        <div>
-          <strong>Champtron Systems LLC</strong>
-          <span>Built for entrepreneurs and small business owners</span>
+        <svg class="cc-mark" width="22" height="38" viewBox="-16 -44 32 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <polygon points="0,-42 14,0 -14,0" fill="#178A9E"/>
+          <polygon points="0,42 14,0 -14,0" fill="#D4880A"/>
+          <circle cx="0" cy="0" r="4" fill="#07111f"/>
+          <circle cx="0" cy="0" r="2" fill="#F6F3EE" opacity="0.5"/>
+        </svg>
+        <div class="cc-wordmark">
+          <span class="cc-champ">CHAMP</span>
+          <span class="cc-compass">COMPASS</span>
         </div>
       </div>
       <a href="#assessment" class="nav-cta" onclick="if(Auth && !Auth.isLoggedIn()){event.preventDefault();showAuthModal('signup');}">Start Assessment</a>

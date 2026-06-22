@@ -1,1 +1,1 @@
-# SmallBiz Advisor — Middleware package
+# Champ Compass — Middleware package

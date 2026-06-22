@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Assessments Router
+Champ Compass — Assessments Router
 Endpoints: POST /assessments, GET /assessments, GET /assessments/{id}
 Persists assessment scores and inputs to Supabase PostgreSQL.
 """

@@ -1,4 +1,4 @@
-// auth.js — SmallBiz Advisor Auth Layer
+// auth.js — Champ Compass Auth Layer
 // No framework. Vanilla JS. Manages JWT in memory (not localStorage for security).
 // Must be loaded BEFORE api-client.js and BEFORE app.js.
 

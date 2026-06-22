@@ -1,5 +1,5 @@
 """
-SmallBiz Advisor — Baseline Pydantic Schemas
+Champ Compass — Baseline Pydantic Schemas
 """
 from datetime import datetime
 from uuid import UUID

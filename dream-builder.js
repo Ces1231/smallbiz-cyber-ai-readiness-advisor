@@ -1,4 +1,4 @@
-// ── Dream Builder — SmallBiz Advisor ─────────────────────────────────────────
+// ── Dream Builder — Champ Compass ──────────────────────────────────────────
 // Vanilla JS — no framework, no build step.
 // Requires: api-client.js, auth.js, Stripe.js
 

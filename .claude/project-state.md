@@ -2,7 +2,7 @@
 _Last updated: 2026-06-22 by wasp (SPRINT-008 NVIDIA hybrid routing, embeddings, GPU stats, voice, document analysis — complete)_
 
 ## Meta
-- **project:** smallbiz-cyber-ai-readiness-advisor
+- **project:** champ-compass
 - **state_mode:** single
 - **version:** 0.1.0
 - **last_updated:** 2026-06-22
@@ -28,7 +28,7 @@ _Last updated: 2026-06-22 by wasp (SPRINT-008 NVIDIA hybrid routing, embeddings,
 
 ## Project Overview
 
-**SmallBiz Cyber & AI Readiness Advisor** is a static single-page assessment tool for small businesses, built by Champtron Systems LLC. It scores businesses across three dimensions:
+**Champ Compass** is a static single-page assessment tool for small businesses, built by Champtron Systems LLC. It scores businesses across three dimensions:
 - Cyber Score = (MFA + Backups + Training) / 6 × 100
 - AI Score = (Digital Tools + Automation + AI Usage) / 6 × 100
 - Funding Score = (Documents + Online Presence + Growth Plan) / 6 × 100
@@ -308,5 +308,5 @@ _Last updated: 2026-06-22 by wasp (SPRINT-008 NVIDIA hybrid routing, embeddings,
 | SPRINT-003 | 2026-06-17 | Billing — Stripe Subscriptions, Free Tier Enforcement & Admin Dashboard | backend/routers/billing.py, backend/routers/admin.py, admin.html | pending |
 | SPRINT-005 | 2026-06-19 | Onboarding Gate — Sequential Q1/Q2 Post-Login Flow (Web + Mobile) | mobile/src/screens/onboarding/OnboardingGateScreen.tsx, mobile/src/screens/ChampInfoScreen.tsx, mobile/src/navigation/AuthNavigator.tsx, mobile/src/navigation/AppNavigator.tsx, mobile/src/navigation/RootNavigator.tsx, mobile/src/store/authStore.ts, mobile/src/screens/HomeScreen.tsx, mobile/src/screens/auth/LoginScreen.tsx, mobile/src/screens/auth/SignupScreen.tsx, app.js, index.html, styles.css | specified |
 | SPRINT-005-ARCH | 2026-06-19 | ARCHIVED: Existing Business Assessment Path — Mobile (superseded by SPRINT-005 onboarding gate; content deferred to SPRINT-006) | — | archived |
-| SPRINT-006 | 2026-06-21 | SmallBiz Dream-to-Launch Builder — Q2 new business path (quiz, AI ideas, tiered plans, one-time billing) | backend/routers/business.py, backend/schemas/business.py, backend/prompts_dream.py, backend/pdf_generator.py, backend/routers/billing.py (extended), backend/dependencies.py (extended), supabase/migrations/ (4 new), dream-builder.html, dream-builder.js, styles.css, app.js, mobile/src/screens/dream/, mobile/src/api/business.ts, mobile/src/navigation/AppNavigator.tsx, mobile/src/store/authStore.ts | complete |
+| SPRINT-006 | 2026-06-21 | Dream Builder — Q2 new business path (quiz, AI ideas, tiered plans, one-time billing) | backend/routers/business.py, backend/schemas/business.py, backend/prompts_dream.py, backend/pdf_generator.py, backend/routers/billing.py (extended), backend/dependencies.py (extended), supabase/migrations/ (4 new), dream-builder.html, dream-builder.js, styles.css, app.js, mobile/src/screens/dream/, mobile/src/api/business.ts, mobile/src/navigation/AppNavigator.tsx, mobile/src/store/authStore.ts | complete |
 | SPRINT-008 | 2026-06-22 | NVIDIA hybrid routing, NIM embeddings/reranker, Jetson GPU stats, voice input, document/image analysis | backend/ai/hybrid_provider.py, backend/ai/nvidia_embeddings.py, backend/ai/nvidia_reranker.py, backend/ai/factory.py, backend/routers/ai.py, backend/routers/admin.py, backend/routers/business.py, backend/requirements.txt, docker-compose.yml, index.html, app.js, auth.js, styles.css, admin.html, mobile/src/hooks/useVoiceInput.ts, mobile/src/components/VoiceMicButton.tsx, mobile/src/screens/dream/, mobile/src/screens/AssessmentFormScreen.tsx | complete |

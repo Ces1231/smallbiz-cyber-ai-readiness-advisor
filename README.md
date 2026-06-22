@@ -1,4 +1,4 @@
-# Champ Compass
+# Champ Compass — Your AI-Powered Business Navigation System
 
 **Built by Champtron Systems LLC**
 
@@ -165,7 +165,7 @@ A full-stack SaaS platform that helps small business owners evaluate their cyber
 1. **Clone the repo**
    ```bash
    git clone <repo-url>
-   cd smallbiz-cyber-ai-readiness-advisor
+   cd champ-compass
    ```
 
 2. **Configure environment**

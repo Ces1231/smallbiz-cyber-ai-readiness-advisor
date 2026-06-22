@@ -20,7 +20,7 @@
 
 ## HQ Context Applied
 
-> Queried HQ DB for project: smallbiz-cyber-ai-readiness-advisor
+> Queried HQ DB for project: champ-compass
 
 **HQ DB not available or project not registered — proceeding without prior context.**
 
@@ -187,7 +187,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="SmallBiz Advisor API", version="1.0.0")
+    app = FastAPI(title="Champ Compass API", version="1.0.0")
     # CORS, routers, startup hooks registered here
     return app
 
@@ -346,7 +346,7 @@ Response (200):
 #### `auth.js` — Frontend Auth Module
 
 ```javascript
-// auth.js — SmallBiz Advisor Auth Layer
+// auth.js — Champ Compass Auth Layer
 // No framework. Vanilla JS. Manages JWT in memory (not localStorage for security).
 
 const Auth = (() => {
@@ -1139,9 +1139,9 @@ Use autopilot-wasp. Build from sprint spec docs/specs/SPRINT-001-saas-mvp-auth-p
 ### Read-ahead for Wasp session start:
 
 Before writing any code, pre-load in parallel:
-- `/home/ces1231/Projects/smallbiz-cyber-ai-readiness-advisor/index.html`
-- `/home/ces1231/Projects/smallbiz-cyber-ai-readiness-advisor/app.js`
-- `/home/ces1231/Projects/smallbiz-cyber-ai-readiness-advisor/styles.css`
+- `/home/ces1231/Projects/champ-compass/index.html`
+- `/home/ces1231/Projects/champ-compass/app.js`
+- `/home/ces1231/Projects/champ-compass/styles.css`
 
 ---
 
