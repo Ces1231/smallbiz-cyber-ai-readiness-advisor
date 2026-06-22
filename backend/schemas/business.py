@@ -30,6 +30,8 @@ class QuizSubmitRequest(BaseModel):
     skills: list[str] = Field(..., min_length=1, max_length=15)
     problems: list[str] = Field(..., min_length=1, max_length=12)
     business_type: BUSINESS_TYPE_OPTIONS
+    industry_category: list[str] = Field(default_factory=list, max_length=16)
+    business_concept: str | None = Field(default=None, max_length=200)
     starting_capital: CAPITAL_OPTIONS
     weekly_hours: HOURS_OPTIONS
 

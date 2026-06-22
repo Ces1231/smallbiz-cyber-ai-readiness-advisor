@@ -10,6 +10,8 @@ window._db = {
     skills: [],
     problems: [],
     business_type: null,
+    industry_category: [],
+    business_concept: '',
     starting_capital: null,
     weekly_hours: null,
   },
@@ -63,6 +65,25 @@ var PROBLEMS_OPTIONS = [
   { key: 'grow_business', label: 'Help businesses grow' },
   { key: 'get_professional_services', label: 'Provide professional services' },
   { key: 'get_local_services', label: 'Provide local services' },
+];
+
+var INDUSTRY_OPTIONS = [
+  { key: 'food_beverage',        label: 'Food & Beverage' },
+  { key: 'health_wellness',      label: 'Health & Wellness' },
+  { key: 'technology_it',        label: 'Technology & IT' },
+  { key: 'beauty_personal_care', label: 'Beauty & Personal Care' },
+  { key: 'home_services',        label: 'Home Services' },
+  { key: 'education_training',   label: 'Education & Training' },
+  { key: 'retail_ecommerce',     label: 'Retail & E-commerce' },
+  { key: 'real_estate',          label: 'Real Estate' },
+  { key: 'finance_insurance',    label: 'Finance & Insurance' },
+  { key: 'creative_design',      label: 'Creative & Design' },
+  { key: 'transportation',       label: 'Transportation' },
+  { key: 'childcare_senior',     label: 'Childcare & Senior Care' },
+  { key: 'events_entertainment', label: 'Events & Entertainment' },
+  { key: 'fitness_sports',       label: 'Fitness & Sports' },
+  { key: 'cleaning_services',    label: 'Cleaning Services' },
+  { key: 'auto_services',        label: 'Auto Services' },
 ];
 
 var BUSINESS_TYPE_OPTIONS = [
@@ -309,13 +330,13 @@ function renderQuizPage(pageNum) {
   if (error) { error.style.display = 'none'; }
 
   // Update progress dots
-  for (var i = 1; i <= 5; i++) {
+  for (var i = 1; i <= 6; i++) {
     var dot = document.getElementById('dbDot' + i);
     if (dot) { dot.className = 'db-quiz-dot' + (i <= pageNum ? ' done' : ''); }
   }
 
   if (backBtn) { backBtn.style.display = pageNum > 1 ? 'inline-flex' : 'none'; }
-  if (nextBtn) { nextBtn.textContent = pageNum === 5 ? 'Get My Ideas' : 'Next'; }
+  if (nextBtn) { nextBtn.textContent = pageNum === 6 ? 'Get My Ideas' : 'Next'; }
 
   var html = '';
 
@@ -352,6 +373,23 @@ function renderQuizPage(pageNum) {
     html += '</div>';
 
   } else if (pageNum === 4) {
+    html = '<h2 class="db-quiz-title">Do you have a specific business in mind?</h2>';
+    html += '<p class="db-quiz-sub">Optional — select a category and/or describe your idea. Skip if you\'re still exploring.</p>';
+    html += '<div class="db-chip-grid">';
+    INDUSTRY_OPTIONS.forEach(function(opt) {
+      var sel = window._db.quizAnswers.industry_category.indexOf(opt.key) > -1 ? ' selected' : '';
+      html += '<button class="db-chip' + sel + '" onclick="toggleChip(this,\'industry_category\',\'' + opt.key + '\')">' + opt.label + '</button>';
+    });
+    html += '</div>';
+    html += '<div style="margin-top:20px;">';
+    html += '<label style="display:block; font-size:0.875rem; color:var(--muted); margin-bottom:6px;">Or describe your own idea:</label>';
+    var conceptVal = (window._db.quizAnswers.business_concept || '').replace(/"/g, '&quot;');
+    html += '<input id="dbBusinessConcept" type="text" class="db-text-input" maxlength="200" ';
+    html += 'placeholder="e.g. mobile dog grooming van, online tutoring for math..." ';
+    html += 'value="' + conceptVal + '" oninput="updateBusinessConcept(this.value)">';
+    html += '</div>';
+
+  } else if (pageNum === 5) {
     html = '<h2 class="db-quiz-title">How much starting capital do you have?</h2>';
     html += '<p class="db-quiz-sub">Select one.</p>';
     html += '<div class="db-radio-group">';
@@ -361,7 +399,7 @@ function renderQuizPage(pageNum) {
     });
     html += '</div>';
 
-  } else if (pageNum === 5) {
+  } else if (pageNum === 6) {
     html = '<h2 class="db-quiz-title">How many hours per week can you dedicate?</h2>';
     html += '<p class="db-quiz-sub">Select one.</p>';
     html += '<div class="db-radio-group">';
@@ -399,6 +437,11 @@ function selectRadio(btn, field, value) {
   _saveQuizDraft();
 }
 
+function updateBusinessConcept(value) {
+  window._db.quizAnswers.business_concept = value;
+  _saveQuizDraft();
+}
+
 function _saveQuizDraft() {
   try {
     localStorage.setItem('db_quiz_draft', JSON.stringify({
@@ -412,8 +455,9 @@ function _validatePage(pageNum) {
   if (pageNum === 1) return window._db.quizAnswers.skills.length > 0;
   if (pageNum === 2) return window._db.quizAnswers.problems.length > 0;
   if (pageNum === 3) return window._db.quizAnswers.business_type !== null;
-  if (pageNum === 4) return window._db.quizAnswers.starting_capital !== null;
-  if (pageNum === 5) return window._db.quizAnswers.weekly_hours !== null;
+  if (pageNum === 4) return true; // optional step
+  if (pageNum === 5) return window._db.quizAnswers.starting_capital !== null;
+  if (pageNum === 6) return window._db.quizAnswers.weekly_hours !== null;
   return false;
 }
 
@@ -433,7 +477,7 @@ function handleQuizNext() {
   }
   if (error) { error.style.display = 'none'; }
 
-  if (page < 5) {
+  if (page < 6) {
     renderQuizPage(page + 1);
   } else {
     submitQuiz();
@@ -451,6 +495,8 @@ async function submitQuiz() {
       skills: window._db.quizAnswers.skills,
       problems: window._db.quizAnswers.problems,
       business_type: window._db.quizAnswers.business_type,
+      industry_category: window._db.quizAnswers.industry_category,
+      business_concept: window._db.quizAnswers.business_concept || null,
       starting_capital: window._db.quizAnswers.starting_capital,
       weekly_hours: window._db.quizAnswers.weekly_hours,
     };

@@ -116,6 +116,8 @@ async def submit_quiz(
         "skills": body.skills,
         "problems": body.problems,
         "business_type": body.business_type,
+        "industry_category": body.industry_category,
+        "business_concept": body.business_concept,
         "starting_capital": body.starting_capital,
         "weekly_hours": body.weekly_hours,
     }

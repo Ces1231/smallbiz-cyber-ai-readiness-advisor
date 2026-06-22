@@ -68,11 +68,19 @@ async def generate_idea_suggestions(quiz_data: dict) -> list[dict]:
 
     def _build_prompt(strict: bool = False) -> str:
         extra = " IMPORTANT: your entire response must be a valid JSON array and nothing else." if strict else ""
+        industry_line = ""
+        if quiz_data.get("industry_category"):
+            industry_line = f"Industry categories of interest: {', '.join(quiz_data['industry_category'])}\n"
+        concept_line = ""
+        if quiz_data.get("business_concept"):
+            concept_line = f"Specific business concept they have in mind: {quiz_data['business_concept']}\n"
         return (
             f"Generate exactly 3 business ideas for someone with these characteristics.\n\n"
             f"Skills: {', '.join(quiz_data.get('skills', []))}\n"
             f"Problems they want to solve: {', '.join(quiz_data.get('problems', []))}\n"
             f"Business type preference: {quiz_data.get('business_type', '')}\n"
+            f"{industry_line}"
+            f"{concept_line}"
             f"Starting capital: {quiz_data.get('starting_capital', '')}\n"
             f"Weekly hours available: {quiz_data.get('weekly_hours', '')}\n\n"
             f"Return a JSON array of exactly 3 objects with these exact keys:\n"
