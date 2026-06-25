@@ -1,0 +1,39 @@
+services:
+
+  backend:
+    image: smallbiz-cyber-ai-readiness-advisor-backend:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-smallbiz-cyber-ai}-backend
+    ports:
+      - "${BACKEND_PORT:-8700}:8000"
+    environment:
+      AI_PROVIDER: "champ-router"
+      CHAMP_AI_ROUTER_URL: "http://host.docker.internal:9000"
+      CHAMP_AI_ROUTER_API_KEY: "${CHAMP_AI_API_KEY:-}"
+      SUPABASE_URL: "${SUPABASE_URL:-http://placeholder}"
+      SUPABASE_SERVICE_ROLE_KEY: "${SUPABASE_SERVICE_ROLE_KEY:-placeholder}"
+      SUPABASE_ANON_KEY: "${SUPABASE_ANON_KEY:-placeholder}"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  nvidia-ai:
+    build:
+      context: ../nvidia-ai-services
+    container_name: ${COMPOSE_PROJECT_NAME:-smallbiz-cyber-ai}-nvidia-ai
+    ports:
+      - "${MORPHEUS_PORT:-8610}:8010"
+      - "${DOCA_PORT:-8611}:8011"
+      - "${NIM_PORT:-8612}:8012"
+      - "${RAPIDS_PORT:-8613}:8013"
+      - "${TRITON_PORT:-8614}:8014"
+      - "${NEMO_PORT:-8615}:8015"
+    environment:
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-deepseek-r1:1.5b}"
+      OLLAMA_NUM_GPU: "0"
+      OLLAMA_TIMEOUT: "20"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
