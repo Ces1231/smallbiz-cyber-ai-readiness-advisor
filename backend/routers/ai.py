@@ -5,6 +5,7 @@ Streams AI-generated advice via Server-Sent Events (SSE).
 Caches results in advice_cache to avoid redundant LLM calls.
 """
 import hashlib
+import json
 import time
 from collections import defaultdict
 from typing import AsyncIterator, Literal
@@ -21,6 +22,7 @@ from backend.ai.factory import get_ai_provider
 from backend.config import settings
 from backend.dependencies import get_current_user, get_supabase_client
 from backend.middleware.tier import require_pro_tier
+from backend.nvidia_ai import morpheus_score
 from backend.prompts import (
     AssessmentContext,
     build_ai_readiness_advice_prompt,
@@ -292,6 +294,34 @@ async def _generate_and_cache_advice(
         return
 
     yield "data: [DONE]\n\n"
+
+    # ── NVIDIA AI enrichment — fail-safe, never blocks or raises ─────────────
+    # Collect any findings from the assessment to score for threats.
+    # 'findings' is a flexible list; we derive basic signals from scores.
+    try:
+        findings = []
+        cyber = assessment.get("cyber_score")
+        ai_score = assessment.get("ai_score")
+        funding = assessment.get("funding_score")
+        if cyber is not None and cyber < 60:
+            findings.append({"type": "cyber_gap", "score": cyber})
+        if ai_score is not None and ai_score < 60:
+            findings.append({"type": "ai_gap", "score": ai_score})
+        if funding is not None and funding < 60:
+            findings.append({"type": "funding_gap", "score": funding})
+
+        nvidia_result = await morpheus_score(findings)
+        if nvidia_result:
+            safe_payload = json.dumps(nvidia_result).replace("\n", " ")
+            yield f"event: nvidia_analysis\ndata: {safe_payload}\n\n"
+            log.info(
+                "nvidia_analysis_emitted",
+                assessment_id=str(assessment_id),
+                dimension=dimension,
+            )
+    except Exception as exc:
+        log.warning("nvidia_enrichment_failed", error=str(exc))
+        # Never surface this error to the client
 
     # Cache the full response — failure is silent (logged only)
     # Do not cache if the output is empty or appears to be an error string from
