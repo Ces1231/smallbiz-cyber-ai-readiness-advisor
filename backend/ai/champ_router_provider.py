@@ -5,6 +5,7 @@ on port 9000. Parses assessment scores from the prompt text, builds
 structured findings, calls /ai/full-analysis, and streams the formatted
 JSON result as readable advice text.
 """
+import asyncio
 import os
 import re
 from typing import AsyncIterator
@@ -219,6 +220,39 @@ class CHAMPRouterProvider(AIProvider):
 
     # ── AIProvider interface ──────────────────────────────────────────────────
 
+    async def _nvidia_reachable(self) -> bool:
+        """
+        Fast TCP probe to the project's Morpheus port (8610).
+        Returns True in <1s if the service is listening; False otherwise.
+        Avoids the 30s HTTP timeout from the router's health endpoints.
+        """
+        nvidia_host = os.getenv("NVIDIA_SERVICE_HOST", "host.docker.internal")
+        morpheus_port = int(os.getenv("NVIDIA_MORPHEUS_PORT", "8610"))
+        try:
+            _, writer = await asyncio.wait_for(
+                asyncio.open_connection(nvidia_host, morpheus_port),
+                timeout=1.5,
+            )
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except Exception:
+                pass
+            return True
+        except Exception:
+            return False
+
+    async def _pick_provider(self) -> str:
+        """
+        Returns 'mock_provider' if Morpheus is unreachable (fast TCP probe).
+        Returns '' (empty) to use the router's configured default otherwise.
+        """
+        reachable = await self._nvidia_reachable()
+        if not reachable:
+            log.info("champ_router_nvidia_unreachable_using_mock", project=_PROJECT_ID)
+            return "mock_provider"
+        return ""
+
     async def stream_completion(
         self,
         system_prompt: str,
@@ -229,6 +263,8 @@ class CHAMPRouterProvider(AIProvider):
         """
         Calls /ai/full-analysis on the CHAMP AI Router, then streams
         the formatted result as text chunks (~60 chars each).
+        Probes project service health first — uses mock_provider when
+        NVIDIA services are offline to avoid multi-minute timeouts.
         Never raises — yields an error sentinel string on failure.
         """
         try:
@@ -236,12 +272,16 @@ class CHAMPRouterProvider(AIProvider):
             dimension = self._detect_dimension(system_prompt)
             findings  = self._build_findings(scores, dimension)
 
-            payload = {
-                "project_id": _PROJECT_ID,
-                "findings":   findings,
-            }
+            async with httpx.AsyncClient(timeout=35.0) as client:
+                provider = await self._pick_provider()
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "project_id": _PROJECT_ID,
+                    "findings":   findings,
+                }
+                if provider:
+                    payload["provider"] = provider
+
                 resp = await client.post(
                     f"{self._base_url}/ai/full-analysis",
                     json=payload,
