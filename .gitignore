@@ -37,3 +37,4 @@ backend/.env
 .claude/friday/
 .claude/hawkeye/
 .claude/vision/
+.env

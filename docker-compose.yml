@@ -151,5 +151,25 @@ services:
       - ./dream-builder.js:/usr/share/nginx/html/dream-builder.js:ro
       - ./docker/nginx-frontend.conf:/etc/nginx/conf.d/default.conf:ro
 
+  nvidia-ai:
+    build:
+      context: ../nvidia-ai-services
+    container_name: ${COMPOSE_PROJECT_NAME:-champ-compass}-nvidia-ai
+    ports:
+      - "${MORPHEUS_PORT:-8410}:8010"
+      - "${DOCA_PORT:-8411}:8011"
+      - "${NIM_PORT:-8412}:8012"
+      - "${RAPIDS_PORT:-8413}:8013"
+      - "${TRITON_PORT:-8414}:8014"
+      - "${NEMO_PORT:-8415}:8015"
+    environment:
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-deepseek-r1:1.5b}"
+      OLLAMA_NUM_GPU: "0"
+      OLLAMA_TIMEOUT: "20"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
 volumes:
   db_data:
