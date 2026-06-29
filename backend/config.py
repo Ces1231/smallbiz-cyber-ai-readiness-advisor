@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     nvidia_nim_model: str = "meta/llama-3.1-8b-instruct"
     nvidia_nim_base_url: str = "https://integrate.api.nvidia.com/v1"
 
+    # CHAMP AI Router
+    champ_ai_router_url: str = "http://localhost:9000"
+    champ_ai_router_api_key: str = ""
+
     # Stripe
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""

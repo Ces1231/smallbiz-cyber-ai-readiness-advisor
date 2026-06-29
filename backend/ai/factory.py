@@ -58,8 +58,12 @@ def get_ai_provider() -> AIProvider:
         from backend.ai.hybrid_provider import HybridProvider
         return HybridProvider()
 
+    if provider_name in ("champ-router", "champ_router", "champrouter"):
+        from backend.ai.champ_router_provider import CHAMPRouterProvider
+        return CHAMPRouterProvider()
+
     log.error("ai_provider_not_found", provider=provider_name)
     raise ValueError(
         f"Unknown AI provider: '{provider_name}'. "
-        "Valid values are: 'anthropic', 'openai', 'groq', 'ollama', 'nvidia', 'hybrid'."
+        "Valid values are: 'anthropic', 'openai', 'groq', 'ollama', 'nvidia', 'hybrid', 'champ-router'."
     )

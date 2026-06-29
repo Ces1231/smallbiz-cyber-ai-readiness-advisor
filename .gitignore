@@ -12,6 +12,8 @@ Thumbs.db
 
 # Archives
 *.zip
+*.tar
+*.tar.gz
 
 # Local-only files (never committed)
 local/

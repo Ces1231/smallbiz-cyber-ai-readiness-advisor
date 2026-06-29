@@ -111,9 +111,11 @@ services:
       ALLOWED_ORIGINS: http://localhost,http://192.168.1.154
       APP_ENV: local
       LOG_LEVEL: INFO
-      # ── AI provider (ollama = local Jetson GPU; nvidia = NVIDIA NIM cloud) ──
+      # ── AI provider (ollama = local Jetson GPU; nvidia = NVIDIA NIM cloud; champ-router = CHAMP AI Router) ──
       NVIDIA_AI_URL: http://nvidia-ai:8010
-      AI_PROVIDER: ${AI_PROVIDER:-hybrid}
+      AI_PROVIDER: ${AI_PROVIDER:-champ-router}
+      CHAMP_AI_ROUTER_URL: ${CHAMP_AI_ROUTER_URL:-http://host.docker.internal:9000}
+      CHAMP_AI_ROUTER_API_KEY: ${CHAMP_AI_API_KEY:-}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
@@ -155,14 +157,14 @@ services:
   nvidia-ai:
     build:
       context: ../nvidia-ai-services
-    container_name: ${COMPOSE_PROJECT_NAME:-champ-compass}-nvidia-ai
+    container_name: ${COMPOSE_PROJECT_NAME:-smallbiz-cyber-ai}-nvidia-ai
     ports:
-      - "${MORPHEUS_PORT:-8410}:8010"
-      - "${DOCA_PORT:-8411}:8011"
-      - "${NIM_PORT:-8412}:8012"
-      - "${RAPIDS_PORT:-8413}:8013"
-      - "${TRITON_PORT:-8414}:8014"
-      - "${NEMO_PORT:-8415}:8015"
+      - "${MORPHEUS_PORT:-8610}:8010"
+      - "${DOCA_PORT:-8611}:8011"
+      - "${NIM_PORT:-8612}:8012"
+      - "${RAPIDS_PORT:-8613}:8013"
+      - "${TRITON_PORT:-8614}:8014"
+      - "${NEMO_PORT:-8615}:8015"
     environment:
       OLLAMA_HOST: "http://host.docker.internal:11434"
       OLLAMA_MODEL: "${OLLAMA_MODEL:-deepseek-r1:1.5b}"
